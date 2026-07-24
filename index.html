@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="light" />
+    <meta
+      name="description"
+      content="A professional, interactive bicycle workshop pre-authorisation inspection checklist."
+    />
+    <meta name="theme-color" content="#183246" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Inspection" />
+    <title>Workshop Bike Inspection</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./shop-logo.png" sizes="96x96" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <link rel="preload" as="script" href="./app.js?v=6" />
+    <link rel="stylesheet" href="./styles.css?v=6" />
+  </head>
+  <body>
+    <header class="topbar" id="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <img
+            class="brand-logo"
+            src="./shop-logo.png"
+            alt=""
+            width="96"
+            height="96"
+            decoding="async"
+            fetchpriority="high"
+          />
+        </span>
+        <div>
+          <p class="eyebrow">Workshop checklist</p>
+          <p class="brand-title">Bike Inspection</p>
+        </div>
+      </div>
+
+      <div class="header-progress" aria-label="Checklist progress">
+        <div class="progress-copy">
+          <span id="progress-label">0 of 0 checked</span>
+          <strong id="progress-percent">0%</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <span id="progress-bar"></span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="button button-secondary" id="print-button" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z" />
+          </svg>
+          Print / PDF
+        </button>
+        <button class="button button-danger" id="reset-button" type="button">
+          Reset
+        </button>
+      </div>
+    </header>
+
+    <div class="section-rail-wrap" id="section-rail-wrap">
+      <div class="rail-progress" aria-hidden="true"><span></span></div>
+      <nav class="section-rail" id="section-rail" aria-label="Jump to section"></nav>
+    </div>
+
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Checklist sections">
+        <div class="sidebar-progress">
+          <div class="progress-ring" id="progress-ring">
+            <span id="ring-percent">0%</span>
+          </div>
+          <div>
+            <strong>Inspection progress</strong>
+            <span id="sidebar-progress-label">0 of 0 items</span>
+          </div>
+        </div>
+
+        <nav>
+          <p class="nav-label">Jump to section</p>
+          <ol id="section-navigation"></ol>
+        </nav>
+
+        <label class="filter-toggle">
+          <input id="incomplete-filter" type="checkbox" />
+          <span class="toggle-ui" aria-hidden="true"></span>
+          <span>
+            <strong>Incomplete only</strong>
+            <small>Hide checked rows</small>
+          </span>
+        </label>
+
+        <p class="save-state" id="save-state" aria-live="polite">
+          Saved on this device
+        </p>
+      </aside>
+
+      <main>
+        <section class="intro-card" aria-labelledby="page-title">
+          <div>
+            <p class="eyebrow">Pre-authorisation assessment</p>
+            <h1 id="page-title">Workshop Bike Inspection</h1>
+            <p>
+              Select one status or measurement for every applicable line.
+              Findings and required actions can be entered in the blank notes
+              fields.
+            </p>
+          </div>
+
+          <div class="status-key" aria-label="Status key">
+            <span class="key-item key-ok"><i></i><strong>OK</strong> Serviceable</span>
+            <span class="key-item key-adjust"><i></i><strong>ADJ</strong> Adjust / service</span>
+            <span class="key-item key-replace"><i></i><strong>RPL</strong> Replace</span>
+            <span class="key-item key-stop"><i></i><strong>STOP</strong> Unsafe</span>
+          </div>
+        </section>
+
+        <section class="configuration-card" aria-labelledby="configuration-title">
+          <div class="configuration-heading">
+            <div>
+              <p class="eyebrow">Bike setup</p>
+              <h2 id="configuration-title">Show only relevant checks</h2>
+              <p>
+                Select the components fitted to this bike. Unselected fields
+                leave their related checks visible.
+              </p>
+            </div>
+            <div class="configuration-count" aria-live="polite">
+              <strong id="configuration-count">239 of 239</strong>
+              <span>inspection points shown</span>
+            </div>
+          </div>
+
+          <div class="configuration-grid">
+            <label class="configuration-field">
+              <span>E-bike</span>
+              <select data-configuration-key="ebike">
+                <option value="">Select</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </label>
+
+            <label class="configuration-field">
+              <span>Front brake</span>
+              <select data-configuration-key="frontBrake">
+                <option value="">Select type</option>
+                <option value="mechanical-rim">Mechanical rim</option>
+                <option value="mechanical-disc">Mechanical disc</option>
+                <option value="hydraulic-disc">Hydraulic disc</option>
+                <option value="none">None</option>
+              </select>
+            </label>
+
+            <label class="configuration-field">
+              <span>Rear brake</span>
+              <select data-configuration-key="rearBrake">
+                <option value="">Select type</option>
+                <option value="mechanical-rim">Mechanical rim</option>
+                <option value="mechanical-disc">Mechanical disc</option>
+                <option value="hydraulic-disc">Hydraulic disc</option>
+                <option value="none">None</option>
+              </select>
+            </label>
+
+            <label class="configuration-field">
+              <span>Suspension</span>
+              <select data-configuration-key="suspension">
+                <option value="">Select type</option>
+                <option value="rigid">Rigid</option>
+                <option value="front">Front suspension</option>
+                <option value="full">Full suspension</option>
+              </select>
+            </label>
+
+            <label class="configuration-field">
+              <span>Gearing</span>
+              <select data-configuration-key="gearing">
+                <option value="">Select type</option>
+                <option value="mechanical-derailleur">Mechanical derailleur</option>
+                <option value="electronic-derailleur">Electronic derailleur</option>
+                <option value="internal">Internal gear hub</option>
+                <option value="single">Single speed</option>
+              </select>
+            </label>
+
+            <label class="configuration-field">
+              <span>Drive</span>
+              <select data-configuration-key="drive">
+                <option value="">Select type</option>
+                <option value="chain">Chain</option>
+                <option value="belt">Belt</option>
+              </select>
+            </label>
+
+            <label class="configuration-field">
+              <span>Dropper post</span>
+              <select data-configuration-key="dropper">
+                <option value="">Select</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="filter-toggle show-all-toggle">
+            <input id="show-all-items" type="checkbox" />
+            <span class="toggle-ui" aria-hidden="true"></span>
+            <span>
+              <strong>Show all 239</strong>
+              <small>Temporarily ignore the bike setup filters</small>
+            </span>
+          </label>
+        </section>
+
+        <noscript>
+          <div class="notice">
+            JavaScript is required to use the interactive checklist.
+          </div>
+        </noscript>
+
+        <form id="checklist-form" autocomplete="off"></form>
+
+        <footer class="page-footer">
+          <p>
+            Pre-authorisation assessment only. Hidden faults may become apparent
+            during service. Do not test ride or release a bike with a STOP item
+            unresolved.
+          </p>
+          <p>
+            Use manufacturer procedures, torque specifications, service limits
+            and shop policy.
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <dialog id="reset-dialog">
+      <form method="dialog">
+        <div class="dialog-icon" aria-hidden="true">!</div>
+        <h2>Reset the checklist?</h2>
+        <p>
+          This will clear the bike setup and every selected status, measurement
+          and note saved on this device.
+        </p>
+        <div class="dialog-actions">
+          <button class="button button-secondary" value="cancel">Keep checklist</button>
+          <button class="button button-danger solid" id="confirm-reset" value="confirm">
+            Reset everything
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="./app.js?v=6" defer></script>
+  </body>
+</html>
