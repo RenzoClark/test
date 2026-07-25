@@ -1234,18 +1234,22 @@ dialog .button-secondary {
 
 html[data-theme="dark"] {
   color-scheme: dark;
-  --ink: #e7eef2;
-  --muted: #a8b7c1;
-  --line: #3b4e5b;
-  --line-dark: #536775;
-  --surface: #172732;
-  --surface-alt: #1c303d;
-  --canvas: #0e1a22;
+  --ink: #eeeeee;
+  --muted: #b3b3b3;
+  --line: #3d3d3d;
+  --line-dark: #555555;
+  --surface: #1a1a1a;
+  --surface-alt: #222222;
+  --canvas: #0d0d0d;
   --shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
 }
 
+html[data-theme="dark"] .topbar {
+  background: #111111;
+}
+
 html[data-theme="dark"] .sidebar {
-  background: #13232d;
+  background: #121212;
 }
 
 html[data-theme="dark"] .sidebar-progress,
@@ -1260,11 +1264,11 @@ html[data-theme="dark"] .rail-chip,
 html[data-theme="dark"] .work-order-field input,
 html[data-theme="dark"] dialog .button-secondary {
   color: var(--ink);
-  background: #203542;
+  background: #242424;
 }
 
 html[data-theme="dark"] .progress-ring {
-  background: conic-gradient(var(--teal-600) var(--progress), #344955 0);
+  background: conic-gradient(var(--teal-600) var(--progress), #3a3a3a 0);
 }
 
 html[data-theme="dark"] .progress-ring::before {
@@ -1277,31 +1281,31 @@ html[data-theme="dark"] .configuration-field,
 html[data-theme="dark"] .key-ok,
 html[data-theme="dark"] .table-header,
 html[data-theme="dark"] .rail-chip {
-  color: #d8e5eb;
+  color: #dedede;
 }
 
 html[data-theme="dark"] .intro-card h1,
 html[data-theme="dark"] .configuration-heading h2,
 html[data-theme="dark"] .configuration-count strong,
 html[data-theme="dark"] dialog h2 {
-  color: #f3f8fa;
+  color: #f5f5f5;
 }
 
 html[data-theme="dark"] .nav-link {
-  color: #bac8d0;
+  color: #c7c7c7;
 }
 
 html[data-theme="dark"] .nav-link:hover {
-  background: #203541;
+  background: #272727;
 }
 
 html[data-theme="dark"] .nav-link.active {
-  color: #f3f8fa;
-  background: #28424f;
+  color: #f5f5f5;
+  background: #333333;
 }
 
 html[data-theme="dark"] .toggle-ui {
-  background: #4b606c;
+  background: #4a4a4a;
 }
 
 html[data-theme="dark"] .filter-toggle input:checked + .toggle-ui {
@@ -1314,11 +1318,11 @@ html[data-theme="dark"] .configuration-count {
 }
 
 html[data-theme="dark"] .table-header {
-  background: #233946;
+  background: #262626;
 }
 
 html[data-theme="dark"] .check-row:nth-child(even) {
-  background: #192a35;
+  background: #1e1e1e;
 }
 
 html[data-theme="dark"] .check-row.is-complete {
@@ -1331,7 +1335,15 @@ html[data-theme="dark"] .check-row.is-complete {
 
 html[data-theme="dark"] .multi-select-menu label:hover,
 html[data-theme="dark"] .show-all-toggle {
-  background: #263c49;
+  background: #2b2b2b;
+}
+
+html[data-theme="dark"] .section-heading {
+  background: #202020;
+}
+
+html[data-theme="dark"] .section-number {
+  background: #111111;
 }
 
 html[data-theme="dark"] .status-button[data-status="YES"],
@@ -1352,8 +1364,12 @@ html[data-theme="dark"] .status-button[data-status="FAIL"] {
 
 html[data-theme="dark"] .status-button[aria-pressed="true"] {
   color: #fff;
-  border-color: var(--navy-800);
-  background: var(--navy-800);
+  border-color: #555555;
+  background: #444444;
+}
+
+html[data-theme="dark"] .status-button[data-status="OK"] {
+  color: #d7d7d7;
 }
 
 html[data-theme="dark"]
@@ -1382,13 +1398,13 @@ html[data-theme="dark"]
 html[data-theme="dark"] .row-notes textarea:hover,
 html[data-theme="dark"] .row-notes textarea:focus {
   color: var(--ink);
-  background: #203541;
+  background: #242424;
 }
 
 html[data-theme="dark"] .row-notes textarea {
   color: var(--ink);
   border-color: var(--line);
-  background: #203541;
+  background: #242424;
 }
 
 html[data-theme="dark"] .notice {
@@ -1409,17 +1425,17 @@ html[data-theme="dark"] .dialog-icon {
 
 html[data-theme="dark"] .toast {
   color: #fff;
-  background: #0a151c;
+  background: #080808;
 }
 
 html[data-theme="dark"] .section-rail-wrap {
-  background: #13232d;
+  background: #121212;
 }
 
 html[data-theme="dark"] .rail-chip.active {
   color: #fff;
-  border-color: #477085;
-  background: #28495a;
+  border-color: #5a5a5a;
+  background: #333333;
 }
 
 /* ---------------------------------------------------------------------------
