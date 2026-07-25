@@ -1979,6 +1979,7 @@ html[data-theme="dark"] .rail-chip.active {
   .status-key,
   .configuration-card,
   .next-incomplete,
+  .note-toggle,
   .toast,
   dialog,
   .empty-filter-state {
@@ -2028,6 +2029,18 @@ html[data-theme="dark"] .rail-chip.active {
     background: transparent;
     font-size: 9pt;
     box-shadow: none;
+  }
+
+  html[data-theme="dark"] .work-order-field input {
+    color: #102738 !important;
+    border: 0 !important;
+    border-bottom: 1px solid #7e8b94 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    color-scheme: light;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-text-fill-color: #102738;
   }
 
   .work-order-field input::placeholder {
@@ -2110,6 +2123,13 @@ html[data-theme="dark"] .rail-chip.active {
     font-size: 6pt;
   }
 
+  html[data-theme="dark"] .measurement-select {
+    color: #102738 !important;
+    background: #fff !important;
+    color-scheme: light;
+    -webkit-text-fill-color: #102738;
+  }
+
   .multi-select {
     max-width: none;
     font-size: 6pt;
@@ -2134,7 +2154,26 @@ html[data-theme="dark"] .rail-chip.active {
     resize: none;
     padding: 1mm;
     border: 0;
+    background: #fff;
     font-size: 6.5pt;
+  }
+
+  html[data-theme="dark"] .row-notes textarea {
+    color: #102738 !important;
+    border: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    color-scheme: light;
+    -webkit-text-fill-color: #102738;
+  }
+
+  .row-notes textarea:placeholder-shown {
+    visibility: hidden;
+  }
+
+  .row-notes textarea::placeholder {
+    color: transparent !important;
+    opacity: 0;
   }
 
   .check-row.is-configuration-hidden,

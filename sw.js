@@ -1,7 +1,7 @@
 /* Offline shell for the workshop inspection checklist.
    Bump CACHE_VERSION whenever app.js, styles.css or index.html change. */
 
-const CACHE_VERSION = "inspection-v19";
+const CACHE_VERSION = "inspection-v21";
 
 const SHELL = [
   "./",
