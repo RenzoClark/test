@@ -37,6 +37,8 @@
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
+  touch-action: pan-x pan-y;
   color: var(--ink);
   background: var(--canvas);
   font-family:
@@ -252,7 +254,8 @@ textarea:focus-visible,
 
 .app-shell {
   display: grid;
-  grid-template-columns: 270px minmax(0, 1fr);
+  grid-template-columns: 290px minmax(0, 1fr);
+  width: 100%;
   max-width: 1640px;
   min-height: calc(100vh - 78px);
   margin: 0 auto;
@@ -354,6 +357,7 @@ textarea:focus-visible,
   align-items: center;
   gap: 8px;
   width: 100%;
+  min-height: 52px;
   padding: 9px 10px;
   color: #435461;
   border: 0;
@@ -389,8 +393,10 @@ textarea:focus-visible,
 
 .nav-title {
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .nav-count {
@@ -468,7 +474,9 @@ textarea:focus-visible,
 }
 
 main {
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
   padding: 28px clamp(18px, 3vw, 42px) 56px;
 }
 
@@ -660,12 +668,17 @@ main {
 
 #checklist-form {
   display: grid;
+  width: 100%;
+  min-width: 0;
   gap: 20px;
 }
 
 .checklist-section {
-  --checklist-columns: minmax(245px, 1fr) 232px minmax(250px, 0.9fr);
+  --checklist-columns: minmax(0, 1fr) minmax(190px, 232px) minmax(0, 0.9fr);
   scroll-margin-top: calc(var(--chrome-height, 96px) + 14px);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow: clip;
   content-visibility: auto;
   contain-intrinsic-size: auto 640px;
@@ -680,6 +693,8 @@ main {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr) auto;
   align-items: center;
+  width: 100%;
+  height: 58px;
   min-height: 54px;
   color: #fff;
   background: var(--navy-900);
@@ -697,15 +712,20 @@ main {
 }
 
 .section-heading h2 {
+  overflow: hidden;
   margin: 0;
   padding: 0 14px;
   font-size: 0.84rem;
   letter-spacing: 0.1em;
   line-height: 1.25;
   text-transform: uppercase;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .section-counter {
+  justify-self: end;
   margin-right: 14px;
   padding: 5px 8px;
   color: #d4e2e9;
@@ -713,6 +733,7 @@ main {
   border-radius: 999px;
   font-size: 0.64rem;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .table-header,
@@ -1168,11 +1189,11 @@ dialog .button-secondary {
   }
 
   .app-shell {
-    grid-template-columns: 225px minmax(0, 1fr);
+    grid-template-columns: 250px minmax(0, 1fr);
   }
 
   .checklist-section {
-    --checklist-columns: minmax(210px, 1fr) 212px minmax(210px, 0.8fr);
+    --checklist-columns: minmax(0, 1fr) minmax(180px, 212px) minmax(0, 0.8fr);
   }
 
   .configuration-grid {
