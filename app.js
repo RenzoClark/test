@@ -331,6 +331,8 @@ const STATUS_OPTIONS = {
 const STORAGE_KEY = "workshop-bike-inspection-v1";
 const SAVE_DEBOUNCE_MS = 400;
 const NOTE_MAX_HEIGHT = 220;
+const NOTE_MAX_LENGTH = 2000;
+const WORK_ORDER_MAX_LENGTH = 40;
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -339,6 +341,7 @@ const navigation = $("#section-navigation");
 const rail = $("#section-rail");
 const railWrap = $("#section-rail-wrap");
 const topbar = $("#topbar");
+const checklistProgress = $("#checklist-progress");
 const progressLabel = $("#progress-label");
 const progressPercent = $("#progress-percent");
 const progressRing = $("#progress-ring");
@@ -350,15 +353,14 @@ const resetButton = $("#reset-button");
 const resetDialog = $("#reset-dialog");
 const printButton = $("#print-button");
 const themeToggle = $("#theme-toggle");
+const themeColorMeta = $('meta[name="theme-color"]');
 const workOrderInput = $("#work-order-number");
 const nextIncompleteButton = $("#next-incomplete");
 const nextIncompleteCount = $("#next-incomplete-count");
 const toast = $("#toast");
 const configurationCount = $("#configuration-count");
+const configurationCard = $(".configuration-card");
 const showAllItems = $("#show-all-items");
-const configurationOptions = [
-  ...document.querySelectorAll("[data-configuration-option]"),
-];
 const configurationDropdowns = [
   ...document.querySelectorAll("[data-configuration-dropdown]"),
 ];
@@ -367,6 +369,9 @@ const supportsFieldSizing =
   typeof CSS !== "undefined" &&
   CSS.supports &&
   CSS.supports("field-sizing", "content");
+const reducedMotionQuery = window.matchMedia(
+  "(prefers-reduced-motion: reduce)",
+);
 
 const THEME_STORAGE_KEY = "workshop-checklist-theme";
 
@@ -375,6 +380,9 @@ function syncThemeToggle() {
   const dark = document.documentElement.dataset.theme === "dark";
   themeToggle.setAttribute("aria-pressed", String(dark));
   themeToggle.title = dark ? "Switch to light mode" : "Switch to dark mode";
+  if (themeColorMeta) {
+    themeColorMeta.content = dark ? "#111111" : "#183246";
+  }
   const label = themeToggle.querySelector(".theme-label");
   if (label) label.textContent = dark ? "Light" : "Dark";
 }
@@ -474,6 +482,33 @@ const DEFAULT_CONFIGURATION = Object.freeze({
   gearing: "",
   drive: "",
   dropper: "",
+});
+const CONFIGURATION_VALUES = Object.freeze({
+  ebike: new Set(["", "no", "yes"]),
+  frontBrake: new Set([
+    "",
+    "mechanical-rim",
+    "mechanical-disc",
+    "hydraulic-disc",
+    "none",
+  ]),
+  rearBrake: new Set([
+    "",
+    "mechanical-rim",
+    "mechanical-disc",
+    "hydraulic-disc",
+    "none",
+  ]),
+  suspension: new Set(["", "rigid", "front", "full"]),
+  gearing: new Set([
+    "",
+    "mechanical-derailleur",
+    "electronic-derailleur",
+    "internal",
+    "single",
+  ]),
+  drive: new Set(["", "chain", "belt"]),
+  dropper: new Set(["", "no", "yes"]),
 });
 
 const EBIKE_ROWS = new Set([
@@ -590,48 +625,24 @@ const sectionNodes = new Map();
 const sectionStats = new Map();
 
 const relevantRows = new Set();
+const conditionDropdowns = [];
 let totalRelevant = 0;
 let totalComplete = 0;
 
 let checklistState = loadState();
-delete checklistState.statuses[CHAIN_WEAR_ROW_ID];
-delete checklistState.statuses[FRONT_TYRE_CONDITION_ROW_ID];
-delete checklistState.statuses[REAR_TYRE_CONDITION_ROW_ID];
 
 let saveTimer = 0;
 let toastTimer = 0;
+let guideTimer = 0;
 let renderFrame = 0;
 let railTouchedAt = 0;
+let lastGuidedRowId = "";
 
 /* ---------------------------------------------------------------------------
    Persistence
    ------------------------------------------------------------------------ */
 
-function loadState() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (stored && typeof stored === "object") {
-      return {
-        statuses: stored.statuses || {},
-        notes: stored.notes || {},
-        measurements: stored.measurements || {},
-        multiSelections: stored.multiSelections || {},
-        autoStatuses: stored.autoStatuses || {},
-        configuration: {
-          ...DEFAULT_CONFIGURATION,
-          ...(stored.configuration || {}),
-        },
-        workOrderNumber:
-          typeof stored.workOrderNumber === "string"
-            ? stored.workOrderNumber
-            : "",
-        showAllItems: stored.showAllItems === true,
-      };
-    }
-  } catch {
-    // A fresh checklist is safer than blocking the form if stored data is invalid.
-  }
-
+function createEmptyState() {
   return {
     statuses: {},
     notes: {},
@@ -642,6 +653,92 @@ function loadState() {
     workOrderNumber: "",
     showAllItems: false,
   };
+}
+
+function asRecord(value) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value
+    : {};
+}
+
+function statusIsValid(id, status) {
+  const meta = ROW_META.get(id);
+  return Boolean(
+    meta &&
+      id !== CHAIN_WEAR_ROW_ID &&
+      !TYRE_CONDITION_ROWS.has(id) &&
+      STATUS_OPTIONS[meta.section.mode]?.includes(status),
+  );
+}
+
+function sanitiseState(stored) {
+  const state = createEmptyState();
+
+  for (const [id, status] of Object.entries(asRecord(stored.statuses))) {
+    if (statusIsValid(id, status)) state.statuses[id] = status;
+  }
+
+  for (const [id, note] of Object.entries(asRecord(stored.notes))) {
+    if (!ROW_META.has(id) || typeof note !== "string" || !note.trim()) continue;
+    state.notes[id] = note.slice(0, NOTE_MAX_LENGTH);
+  }
+
+  const chainMeasurement = asRecord(stored.measurements)[CHAIN_WEAR_ROW_ID];
+  if (CHAIN_WEAR_OPTIONS.includes(chainMeasurement)) {
+    state.measurements[CHAIN_WEAR_ROW_ID] = chainMeasurement;
+  }
+
+  const storedSelections = asRecord(stored.multiSelections);
+  for (const id of TYRE_CONDITION_ROWS) {
+    const raw = storedSelections[id];
+    if (!Array.isArray(raw)) continue;
+    const selected = [
+      ...new Set(raw.filter((item) => TYRE_CONDITION_OPTIONS.includes(item))),
+    ];
+    if (selected.includes("OK")) {
+      state.multiSelections[id] = ["OK"];
+    } else if (selected.length) {
+      state.multiSelections[id] = selected;
+    }
+  }
+
+  const storedConfiguration = asRecord(stored.configuration);
+  for (const key of Object.keys(DEFAULT_CONFIGURATION)) {
+    const value = storedConfiguration[key];
+    if (CONFIGURATION_VALUES[key].has(value)) {
+      state.configuration[key] = value;
+    }
+  }
+
+  const automation = asRecord(asRecord(stored.autoStatuses)[SPROCKET_ROW_ID]);
+  if (
+    automation.source === CHAIN_WEAR_ROW_ID &&
+    state.statuses[SPROCKET_ROW_ID] === "RPL"
+  ) {
+    state.autoStatuses[SPROCKET_ROW_ID] = {
+      source: CHAIN_WEAR_ROW_ID,
+      previous: statusIsValid(SPROCKET_ROW_ID, automation.previous)
+        ? automation.previous
+        : "",
+    };
+  }
+
+  state.workOrderNumber =
+    typeof stored.workOrderNumber === "string"
+      ? stored.workOrderNumber.slice(0, WORK_ORDER_MAX_LENGTH)
+      : "";
+  state.showAllItems = stored.showAllItems === true;
+  return state;
+}
+
+function loadState() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (stored && typeof stored === "object") return sanitiseState(stored);
+  } catch {
+    // A fresh checklist is safer than blocking the form if stored data is invalid.
+  }
+  return createEmptyState();
 }
 
 function scheduleSave() {
@@ -876,6 +973,10 @@ function renderProgress() {
   setText(ringPercent, `${percent}%`);
   setText(sidebarProgressLabel, `${totalComplete} of ${totalRelevant} items`);
   setText(configurationCount, `${totalRelevant} of ${FULL_CHECKLIST_TOTAL}`);
+  if (checklistProgress) {
+    checklistProgress.max = Math.max(1, totalRelevant);
+    checklistProgress.value = totalComplete;
+  }
   const remaining = Math.max(0, totalRelevant - totalComplete);
   setText(nextIncompleteCount, String(remaining));
   if (nextIncompleteButton) {
@@ -949,11 +1050,13 @@ function refreshChainWearRow() {
   );
 }
 
-function closeConditionDropdowns() {
-  for (const nodes of rowNodes.values()) {
-    if (nodes.conditionDropdown) nodes.conditionDropdown.open = false;
+function closeConditionDropdowns(except = null) {
+  for (const dropdown of conditionDropdowns) {
+    if (dropdown !== except && dropdown.open) dropdown.open = false;
   }
-  for (const dropdown of configurationDropdowns) dropdown.open = false;
+  for (const dropdown of configurationDropdowns) {
+    if (dropdown !== except && dropdown.open) dropdown.open = false;
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -1010,6 +1113,7 @@ function refreshSectionFilter(sectionId) {
    ------------------------------------------------------------------------ */
 
 function updateStatus(id, status) {
+  if (!statusIsValid(id, status)) return;
   const wasComplete = rowIsComplete(id);
   delete checklistState.autoStatuses[id];
 
@@ -1027,6 +1131,7 @@ function updateStatus(id, status) {
 }
 
 function updateMeasurement(id, value) {
+  if (id !== CHAIN_WEAR_ROW_ID) return;
   const wasComplete = rowIsComplete(id);
   const measurement = CHAIN_WEAR_OPTIONS.includes(value) ? value : "";
 
@@ -1104,11 +1209,17 @@ function updateTyreCondition(id, option, checked) {
 }
 
 function updateNote(id, value) {
+  if (!ROW_META.has(id) || typeof value !== "string") return;
   const nodes = rowNodes.get(id);
-  if (nodes) nodes.el.classList.toggle("has-entry", Boolean(value.trim()));
+  const note = value.slice(0, NOTE_MAX_LENGTH);
+  const hasEntry = Boolean(note.trim());
+  if (nodes) {
+    nodes.el.classList.toggle("has-entry", hasEntry);
+    if (nodes.note.value !== note) nodes.note.value = note;
+  }
 
-  if (value.trim()) {
-    checklistState.notes[id] = value;
+  if (hasEntry) {
+    checklistState.notes[id] = note;
   } else {
     delete checklistState.notes[id];
   }
@@ -1116,7 +1227,7 @@ function updateNote(id, value) {
 }
 
 function updateConfiguration(key, value) {
-  if (!Object.hasOwn(DEFAULT_CONFIGURATION, key)) return;
+  if (!CONFIGURATION_VALUES[key]?.has(value)) return;
   checklistState.configuration[key] = value;
   recomputeRelevance();
   applyIncompleteFilter();
@@ -1125,7 +1236,7 @@ function updateConfiguration(key, value) {
 }
 
 function updateShowAllItems(showAll) {
-  checklistState.showAllItems = showAll;
+  checklistState.showAllItems = showAll === true;
   recomputeRelevance();
   applyIncompleteFilter();
   scheduleRender();
@@ -1133,16 +1244,10 @@ function updateShowAllItems(showAll) {
 }
 
 function resetChecklist() {
-  checklistState = {
-    statuses: {},
-    notes: {},
-    measurements: {},
-    multiSelections: {},
-    autoStatuses: {},
-    configuration: { ...DEFAULT_CONFIGURATION },
-    workOrderNumber: "",
-    showAllItems: false,
-  };
+  checklistState = createEmptyState();
+  lastGuidedRowId = "";
+  clearTimeout(guideTimer);
+  guideTimer = 0;
 
   try {
     localStorage.removeItem(STORAGE_KEY);
@@ -1245,7 +1350,7 @@ function renderChecklist() {
 
       const statusControl = isTyreConditionRow
         ? `<details class="multi-select" data-multi-select="${id}">` +
-          `<summary data-multi-summary>${tyreSelections.length ? escapeText(tyreSelections.join(", ")) : "Select condition"}</summary>` +
+          `<summary data-multi-summary aria-label="Select tyre condition for ${label}">${tyreSelections.length ? escapeText(tyreSelections.join(", ")) : "Select condition"}</summary>` +
           `<div class="multi-select-menu" role="group" aria-label="Tyre condition options for ${label}">` +
           TYRE_CONDITION_OPTIONS.map(
             (option) =>
@@ -1255,7 +1360,7 @@ function renderChecklist() {
           `</div></details>`
         : isChainWearRow
           ? `<details class="multi-select" data-chain-select="${id}">` +
-          `<summary data-chain-summary>${measurement || "Select measurement"}</summary>` +
+          `<summary data-chain-summary aria-label="Select chain wear measurement">${measurement || "Select measurement"}</summary>` +
           `<div class="multi-select-menu" role="radiogroup" aria-label="Chain wear measurement">` +
           CHAIN_WEAR_OPTIONS.map(
             (option) =>
@@ -1280,7 +1385,7 @@ function renderChecklist() {
         `</div>` +
         `<div class="row-notes"><label class="visually-hidden" for="note-${id}">Finding or notes for ${escapeText(item)}</label>` +
         `<button class="note-toggle" type="button" data-note-toggle="${id}" aria-label="Add finding or required action for ${label}">Add finding / action</button>` +
-        `<textarea id="note-${id}" data-note-id="${id}" aria-label="Finding or notes for ${label}" rows="1" ` +
+        `<textarea id="note-${id}" data-note-id="${id}" rows="1" maxlength="${NOTE_MAX_LENGTH}" ` +
         `placeholder="Finding or required action" ` +
         `autocapitalize="sentences" autocorrect="on" spellcheck="true" enterkeyhint="done">` +
         `${escapeText(note)}</textarea></div>` +
@@ -1325,6 +1430,7 @@ function cacheNodes() {
   rowNodes.clear();
   sectionNodes.clear();
   sectionStats.clear();
+  conditionDropdowns.length = 0;
 
   for (const section of CHECKLIST_SECTIONS) {
     const el = form.querySelector(`[data-section="${section.id}"]`);
@@ -1348,13 +1454,15 @@ function cacheNodes() {
   }
 
   for (const el of form.querySelectorAll(".check-row")) {
+    const conditionDropdown = el.querySelector(".multi-select");
+    if (conditionDropdown) conditionDropdowns.push(conditionDropdown);
     rowNodes.set(el.dataset.row, {
       el,
       buttons: el.querySelectorAll(".status-button"),
       note: el.querySelector("textarea"),
       noteToggle: el.querySelector("[data-note-toggle]"),
       select: el.querySelector(".measurement-select"),
-      conditionDropdown: el.querySelector(".multi-select"),
+      conditionDropdown,
       multiSummary: el.querySelector("[data-multi-summary]"),
       multiOptions: el.querySelectorAll("[data-tyre-condition-id]"),
       chainSummary: el.querySelector("[data-chain-summary]"),
@@ -1392,7 +1500,7 @@ function syncConfigurationControls() {
    ------------------------------------------------------------------------ */
 
 function prefersReducedMotion() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return reducedMotionQuery.matches;
 }
 
 function autoGrow(field) {
@@ -1485,10 +1593,20 @@ function jumpToNextIncomplete() {
     return;
   }
 
-  const current = candidates.find(
-    (row) => row.getBoundingClientRect().top > 110,
-  );
-  const target = current || candidates[0];
+  const activeRow = document.activeElement?.closest?.(".check-row");
+  let anchorIndex = activeRow ? candidates.indexOf(activeRow) : -1;
+  if (anchorIndex < 0 && lastGuidedRowId) {
+    anchorIndex = candidates.findIndex(
+      (row) => row.dataset.row === lastGuidedRowId,
+    );
+  }
+
+  const target =
+    anchorIndex >= 0
+      ? candidates[(anchorIndex + 1) % candidates.length]
+      : candidates.find((row) => row.getBoundingClientRect().top > 110) ||
+        candidates[0];
+  lastGuidedRowId = target.dataset.row;
   const previous = form.querySelector(".check-row.is-guided");
   if (previous && previous !== target) previous.classList.remove("is-guided");
 
@@ -1509,7 +1627,11 @@ function jumpToNextIncomplete() {
       prefersReducedMotion() ? 0 : 260,
     );
   }
-  window.setTimeout(() => target.classList.remove("is-guided"), 900);
+  clearTimeout(guideTimer);
+  guideTimer = window.setTimeout(() => {
+    target.classList.remove("is-guided");
+    guideTimer = 0;
+  }, 900);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1606,21 +1728,56 @@ if (rail) {
   );
 }
 
-for (const option of configurationOptions) {
-  option.addEventListener("change", () => {
-    if (!option.checked) return;
-    updateConfiguration(option.dataset.configurationOption, option.value);
-    syncConfigurationControls();
+if (configurationCard) {
+  configurationCard.addEventListener("change", (event) => {
+    const option = event.target.closest("[data-configuration-option]");
+    if (option?.checked) {
+      updateConfiguration(option.dataset.configurationOption, option.value);
+      syncConfigurationControls();
+      return;
+    }
+    if (event.target === showAllItems) {
+      updateShowAllItems(showAllItems.checked);
+    }
   });
 
-  option.addEventListener("click", () => {
+  configurationCard.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-configuration-option]");
+    if (!option) return;
     const dropdown = option.closest("details");
     if (dropdown) dropdown.open = false;
   });
 }
 
-showAllItems.addEventListener("change", () => {
-  updateShowAllItems(showAllItems.checked);
+document.addEventListener(
+  "toggle",
+  (event) => {
+    const dropdown = event.target;
+    if (
+      dropdown instanceof HTMLDetailsElement &&
+      dropdown.open &&
+      dropdown.classList.contains("multi-select")
+    ) {
+      closeConditionDropdowns(dropdown);
+    }
+  },
+  true,
+);
+
+document.addEventListener("click", (event) => {
+  if (!event.target.closest?.("details.multi-select")) {
+    closeConditionDropdowns();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  const openDropdown = [...conditionDropdowns, ...configurationDropdowns].find(
+    (dropdown) => dropdown.open,
+  );
+  if (!openDropdown) return;
+  closeConditionDropdowns();
+  openDropdown.querySelector("summary")?.focus();
 });
 
 incompleteFilter.addEventListener("change", applyIncompleteFilter);
@@ -1629,7 +1786,10 @@ if (nextIncompleteButton) {
 }
 if (workOrderInput) {
   workOrderInput.addEventListener("input", () => {
-    checklistState.workOrderNumber = workOrderInput.value;
+    checklistState.workOrderNumber = workOrderInput.value.slice(
+      0,
+      WORK_ORDER_MAX_LENGTH,
+    );
     scheduleSave();
   });
 }

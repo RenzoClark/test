@@ -1,7 +1,9 @@
 /* Offline shell for the workshop inspection checklist.
    Bump CACHE_VERSION whenever app.js, styles.css or index.html change. */
 
-const CACHE_VERSION = "inspection-v21";
+const CACHE_PREFIX = "workshop-inspection-";
+const CACHE_VERSION = `${CACHE_PREFIX}v22`;
+const LEGACY_CACHE_PATTERN = /^inspection-v\d+$/;
 
 const SHELL = [
   "./",
@@ -19,7 +21,9 @@ self.addEventListener("install", (event) => {
     caches
       .open(CACHE_VERSION)
       .then((cache) =>
-        Promise.allSettled(SHELL.map((url) => cache.add(new Request(url, { cache: "reload" })))),
+        cache.addAll(
+          SHELL.map((url) => new Request(url, { cache: "reload" })),
+        ),
       )
       .then(() => self.skipWaiting()),
   );
@@ -31,7 +35,14 @@ self.addEventListener("activate", (event) => {
       .keys()
       .then((keys) =>
         Promise.all(
-          keys.filter((key) => key !== CACHE_VERSION).map((key) => caches.delete(key)),
+          keys
+            .filter(
+              (key) =>
+                key !== CACHE_VERSION &&
+                (key.startsWith(CACHE_PREFIX) ||
+                  LEGACY_CACHE_PATTERN.test(key)),
+            )
+            .map((key) => caches.delete(key)),
         ),
       )
       .then(() => self.clients.claim()),
@@ -47,16 +58,25 @@ self.addEventListener("fetch", (event) => {
 
   // HTML: network first, so a deployed update is picked up straight away.
   if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put("./index.html", copy));
-          return response;
+    const cachePromise = caches.open(CACHE_VERSION);
+    const networkPromise = fetch(request);
+
+    event.waitUntil(
+      Promise.all([cachePromise, networkPromise])
+        .then(([cache, response]) => {
+          if (!response.ok || response.type !== "basic") return undefined;
+          return cache.put("./index.html", response.clone());
         })
+        .catch(() => undefined),
+    );
+
+    event.respondWith(
+      networkPromise
         .catch(() =>
-          caches
-            .match("./index.html", { ignoreSearch: true })
+          cachePromise
+            .then((cache) =>
+              cache.match("./index.html", { ignoreSearch: true }),
+            )
             .then((cached) => cached || Response.error()),
         ),
     );
@@ -64,19 +84,21 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Assets: serve from cache immediately, refresh in the background.
-  event.respondWith(
-    caches.match(request, { ignoreSearch: true }).then((cached) => {
-      const network = fetch(request)
-        .then((response) => {
-          if (response && response.ok && response.type === "basic") {
-            const copy = response.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
-          }
-          return response;
-        })
-        .catch(() => cached);
+  const cachePromise = caches.open(CACHE_VERSION);
+  const networkPromise = Promise.all([cachePromise, fetch(request)]).then(
+    ([cache, response]) => {
+      if (response.ok && response.type === "basic") {
+        return cache.put(request, response.clone()).then(() => response);
+      }
+      return response;
+    },
+  );
 
-      return cached || network;
-    }),
+  event.waitUntil(networkPromise.catch(() => undefined));
+  event.respondWith(
+    cachePromise
+      .then((cache) => cache.match(request, { ignoreSearch: true }))
+      .then((cached) => cached || networkPromise)
+      .catch(() => Response.error()),
   );
 });

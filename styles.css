@@ -223,9 +223,12 @@ button {
 .button:focus-visible,
 .status-button:focus-visible,
 .nav-link:focus-visible,
+.multi-select summary:focus-visible,
+.note-toggle:focus-visible,
+.next-incomplete:focus-visible,
 textarea:focus-visible,
+.work-order-field input:focus-visible,
 .configuration-field select:focus-visible,
-.configuration-select summary:focus-visible,
 .filter-toggle input:focus-visible + .toggle-ui {
   outline: 3px solid rgba(10, 143, 138, 0.28);
   outline-offset: 2px;
@@ -306,6 +309,7 @@ textarea:focus-visible,
 
 .progress-ring {
   --progress: 0deg;
+
   position: relative;
   display: grid;
   width: 51px;
@@ -324,7 +328,6 @@ textarea:focus-visible,
   margin: -1px !important;
   padding: 0 !important;
   border: 0 !important;
-  clip: rect(0 0 0 0) !important;
   clip-path: inset(50%) !important;
   white-space: nowrap !important;
 }
@@ -684,6 +687,9 @@ main {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .key-item {
@@ -746,6 +752,7 @@ main {
 
 .checklist-section {
   --checklist-columns: minmax(0, 1fr) minmax(190px, 232px) minmax(0, 0.9fr);
+
   scroll-margin-top: calc(var(--chrome-height, 96px) + 14px);
   width: 100%;
   min-width: 0;
@@ -1100,7 +1107,8 @@ main {
 .row-notes textarea {
   width: 100%;
   min-height: 36px;
-  max-height: 150px;
+  max-height: 220px;
+  field-sizing: content;
   resize: vertical;
   padding: 8px 9px;
   color: var(--ink);
@@ -1675,7 +1683,7 @@ html[data-theme="dark"] .rail-chip.active {
   }
 
   main {
-    padding-block: 20px 44px;
+    padding-block: 20px calc(104px + env(safe-area-inset-bottom));
     padding-inline: var(--gutter-start) var(--gutter-end);
   }
 
@@ -1722,11 +1730,14 @@ html[data-theme="dark"] .rail-chip.active {
   .row-status {
     flex-wrap: wrap;
     justify-content: flex-start;
+    gap: 6px;
     padding: 0 0 9px 32px;
   }
 
   .status-button {
+    flex: 1 1 auto;
     min-width: 60px;
+    max-width: 132px;
     min-height: 44px;
     font-size: 0.72rem;
   }
@@ -1787,10 +1798,6 @@ html[data-theme="dark"] .rail-chip.active {
     font-size: 16px;
   }
 
-  main {
-    padding-bottom: calc(104px + env(safe-area-inset-bottom));
-  }
-
   .next-incomplete {
     position: fixed;
     z-index: 48;
@@ -1823,15 +1830,6 @@ html[data-theme="dark"] .rail-chip.active {
     font-variant-numeric: tabular-nums;
   }
 
-  /* Fill the row instead of overflowing it on a 320px screen. */
-  .row-status {
-    gap: 6px;
-  }
-
-  .status-button {
-    flex: 1 1 auto;
-    max-width: 132px;
-  }
 }
 
 @media (max-width: 560px) {

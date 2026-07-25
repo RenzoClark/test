@@ -1,17 +1,17 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    />
-    <meta name="color-scheme" content="light" />
+    >
+    <meta name="color-scheme" content="light dark">
     <meta
       name="description"
       content="A professional, interactive bicycle workshop pre-authorisation inspection checklist."
-    />
-    <meta name="theme-color" content="#183246" />
+    >
+    <meta name="theme-color" content="#183246">
     <script>
       (() => {
         try {
@@ -21,24 +21,27 @@
             (!savedTheme &&
               window.matchMedia("(prefers-color-scheme: dark)").matches);
           document.documentElement.dataset.theme = dark ? "dark" : "light";
+          document.querySelector('meta[name="theme-color"]').content = dark
+            ? "#111111"
+            : "#183246";
         } catch {
           document.documentElement.dataset.theme = "light";
         }
       })();
     </script>
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
-    />
-    <meta name="apple-mobile-web-app-title" content="Inspection" />
+    >
+    <meta name="apple-mobile-web-app-title" content="Inspection">
     <title>Workshop Bike Inspection</title>
-    <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="icon" href="./shop-logo.png" sizes="96x96" />
-    <link rel="apple-touch-icon" href="./icon-192.png" />
-    <link rel="preload" as="script" href="./app.js?v=21" />
-    <link rel="stylesheet" href="./styles.css?v=21" />
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" href="./shop-logo.png" sizes="96x96">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <link rel="preload" as="script" href="./app.js?v=22">
+    <link rel="stylesheet" href="./styles.css?v=22">
   </head>
   <body>
     <header class="topbar" id="topbar">
@@ -52,7 +55,7 @@
             height="96"
             decoding="async"
             fetchpriority="high"
-          />
+          >
         </span>
         <div>
           <p class="eyebrow">Workshop checklist</p>
@@ -60,11 +63,18 @@
         </div>
       </div>
 
-      <div class="header-progress" aria-label="Checklist progress">
+      <div class="header-progress">
         <div class="progress-copy">
           <span id="progress-label">0 of 0 checked</span>
           <strong id="progress-percent">0%</strong>
         </div>
+        <progress
+          class="visually-hidden"
+          id="checklist-progress"
+          value="0"
+          max="229"
+          aria-labelledby="progress-label"
+        >0%</progress>
         <div class="progress-track" aria-hidden="true">
           <span id="progress-bar"></span>
         </div>
@@ -112,13 +122,13 @@
           </div>
         </div>
 
-        <nav>
+        <nav aria-label="Checklist sections">
           <p class="nav-label">Jump to section</p>
           <ol id="section-navigation"></ol>
         </nav>
 
         <label class="filter-toggle">
-          <input id="incomplete-filter" type="checkbox" />
+          <input id="incomplete-filter" type="checkbox">
           <span class="toggle-ui" aria-hidden="true"></span>
           <span>
             <strong>Incomplete only</strong>
@@ -141,7 +151,7 @@
               Findings and required actions can be entered in the blank notes
               fields.
             </p>
-            <label class="work-order-field" for="work-order-number">
+            <label class="work-order-field">
               <span>Work order number</span>
               <input
                 id="work-order-number"
@@ -150,16 +160,16 @@
                 maxlength="40"
                 autocomplete="off"
                 placeholder="Enter work order number"
-              />
+              >
             </label>
           </div>
 
-          <div class="status-key" aria-label="Status key">
-            <span class="key-item key-ok"><i></i><strong>OK</strong> Serviceable</span>
-            <span class="key-item key-adjust"><i></i><strong>ADJ</strong> Adjust / service</span>
-            <span class="key-item key-replace"><i></i><strong>RPL</strong> Replace</span>
-            <span class="key-item key-stop"><i></i><strong>STOP</strong> Unsafe</span>
-          </div>
+          <ul class="status-key" aria-label="Status key">
+            <li class="key-item key-ok"><i></i><strong>OK</strong> Serviceable</li>
+            <li class="key-item key-adjust"><i></i><strong>ADJ</strong> Adjust / service</li>
+            <li class="key-item key-replace"><i></i><strong>RPL</strong> Replace</li>
+            <li class="key-item key-stop"><i></i><strong>STOP</strong> Unsafe</li>
+          </ul>
         </section>
 
         <section class="configuration-card" aria-labelledby="configuration-title">
@@ -182,7 +192,7 @@
             <div class="configuration-field">
               <span>E-bike</span>
               <details class="multi-select configuration-select" data-configuration-dropdown="ebike">
-                <summary data-configuration-summary data-placeholder="Select">Select</summary>
+                <summary data-configuration-summary data-placeholder="Select" aria-label="Select whether this is an e-bike">Select</summary>
                 <div class="multi-select-menu" role="radiogroup" aria-label="E-bike">
                   <label><input type="radio" name="configuration-ebike" data-configuration-option="ebike" data-option-label="Not selected" value=""><span>Not selected</span></label>
                   <label><input type="radio" name="configuration-ebike" data-configuration-option="ebike" data-option-label="No" value="no"><span>No</span></label>
@@ -194,7 +204,7 @@
             <div class="configuration-field">
               <span>Front brake</span>
               <details class="multi-select configuration-select" data-configuration-dropdown="frontBrake">
-                <summary data-configuration-summary data-placeholder="Select type">Select type</summary>
+                <summary data-configuration-summary data-placeholder="Select type" aria-label="Select front brake type">Select type</summary>
                 <div class="multi-select-menu" role="radiogroup" aria-label="Front brake type">
                   <label><input type="radio" name="configuration-front-brake" data-configuration-option="frontBrake" data-option-label="Not selected" value=""><span>Not selected</span></label>
                   <label><input type="radio" name="configuration-front-brake" data-configuration-option="frontBrake" data-option-label="Mechanical rim" value="mechanical-rim"><span>Mechanical rim</span></label>
@@ -208,7 +218,7 @@
             <div class="configuration-field">
               <span>Rear brake</span>
               <details class="multi-select configuration-select" data-configuration-dropdown="rearBrake">
-                <summary data-configuration-summary data-placeholder="Select type">Select type</summary>
+                <summary data-configuration-summary data-placeholder="Select type" aria-label="Select rear brake type">Select type</summary>
                 <div class="multi-select-menu" role="radiogroup" aria-label="Rear brake type">
                   <label><input type="radio" name="configuration-rear-brake" data-configuration-option="rearBrake" data-option-label="Not selected" value=""><span>Not selected</span></label>
                   <label><input type="radio" name="configuration-rear-brake" data-configuration-option="rearBrake" data-option-label="Mechanical rim" value="mechanical-rim"><span>Mechanical rim</span></label>
@@ -222,7 +232,7 @@
             <div class="configuration-field">
               <span>Suspension</span>
               <details class="multi-select configuration-select" data-configuration-dropdown="suspension">
-                <summary data-configuration-summary data-placeholder="Select type">Select type</summary>
+                <summary data-configuration-summary data-placeholder="Select type" aria-label="Select suspension type">Select type</summary>
                 <div class="multi-select-menu" role="radiogroup" aria-label="Suspension type">
                   <label><input type="radio" name="configuration-suspension" data-configuration-option="suspension" data-option-label="Not selected" value=""><span>Not selected</span></label>
                   <label><input type="radio" name="configuration-suspension" data-configuration-option="suspension" data-option-label="Rigid" value="rigid"><span>Rigid</span></label>
@@ -235,7 +245,7 @@
             <div class="configuration-field">
               <span>Gearing</span>
               <details class="multi-select configuration-select" data-configuration-dropdown="gearing">
-                <summary data-configuration-summary data-placeholder="Select type">Select type</summary>
+                <summary data-configuration-summary data-placeholder="Select type" aria-label="Select gearing type">Select type</summary>
                 <div class="multi-select-menu" role="radiogroup" aria-label="Gearing type">
                   <label><input type="radio" name="configuration-gearing" data-configuration-option="gearing" data-option-label="Not selected" value=""><span>Not selected</span></label>
                   <label><input type="radio" name="configuration-gearing" data-configuration-option="gearing" data-option-label="Mechanical derailleur" value="mechanical-derailleur"><span>Mechanical derailleur</span></label>
@@ -249,7 +259,7 @@
             <div class="configuration-field">
               <span>Drive</span>
               <details class="multi-select configuration-select" data-configuration-dropdown="drive">
-                <summary data-configuration-summary data-placeholder="Select type">Select type</summary>
+                <summary data-configuration-summary data-placeholder="Select type" aria-label="Select drive type">Select type</summary>
                 <div class="multi-select-menu" role="radiogroup" aria-label="Drive type">
                   <label><input type="radio" name="configuration-drive" data-configuration-option="drive" data-option-label="Not selected" value=""><span>Not selected</span></label>
                   <label><input type="radio" name="configuration-drive" data-configuration-option="drive" data-option-label="Chain" value="chain"><span>Chain</span></label>
@@ -261,7 +271,7 @@
             <div class="configuration-field">
               <span>Dropper post</span>
               <details class="multi-select configuration-select" data-configuration-dropdown="dropper">
-                <summary data-configuration-summary data-placeholder="Select">Select</summary>
+                <summary data-configuration-summary data-placeholder="Select" aria-label="Select whether a dropper post is fitted">Select</summary>
                 <div class="multi-select-menu" role="radiogroup" aria-label="Dropper post">
                   <label><input type="radio" name="configuration-dropper" data-configuration-option="dropper" data-option-label="Not selected" value=""><span>Not selected</span></label>
                   <label><input type="radio" name="configuration-dropper" data-configuration-option="dropper" data-option-label="No" value="no"><span>No</span></label>
@@ -272,7 +282,7 @@
           </div>
 
           <label class="filter-toggle show-all-toggle">
-            <input id="show-all-items" type="checkbox" />
+            <input id="show-all-items" type="checkbox">
             <span class="toggle-ui" aria-hidden="true"></span>
             <span>
               <strong>Show all 229</strong>
@@ -287,7 +297,7 @@
           </div>
         </noscript>
 
-        <form id="checklist-form" autocomplete="off"></form>
+        <div id="checklist-form"></div>
 
         <footer class="page-footer">
           <p>
@@ -312,8 +322,8 @@
           status, measurement and note saved on this device.
         </p>
         <div class="dialog-actions">
-          <button class="button button-secondary" value="cancel">Keep checklist</button>
-          <button class="button button-danger solid" id="confirm-reset" value="confirm">
+          <button class="button button-secondary" type="submit" value="cancel">Keep checklist</button>
+          <button class="button button-danger solid" id="confirm-reset" type="submit" value="confirm">
             Reset everything
           </button>
         </div>
@@ -328,6 +338,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <script src="./app.js?v=21" defer></script>
+    <script src="./app.js?v=22" defer></script>
   </body>
 </html>
