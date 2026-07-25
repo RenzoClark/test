@@ -37,8 +37,8 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./shop-logo.png" sizes="96x96" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
-    <link rel="preload" as="script" href="./app.js?v=15" />
-    <link rel="stylesheet" href="./styles.css?v=15" />
+    <link rel="preload" as="script" href="./app.js?v=16" />
+    <link rel="stylesheet" href="./styles.css?v=16" />
   </head>
   <body>
     <header class="topbar" id="topbar">
@@ -141,6 +141,17 @@
               Findings and required actions can be entered in the blank notes
               fields.
             </p>
+            <label class="work-order-field" for="work-order-number">
+              <span>Work order number</span>
+              <input
+                id="work-order-number"
+                name="work-order-number"
+                type="text"
+                maxlength="40"
+                autocomplete="off"
+                placeholder="Enter work order number"
+              />
+            </label>
           </div>
 
           <div class="status-key" aria-label="Status key">
@@ -297,8 +308,8 @@
         <div class="dialog-icon" aria-hidden="true">!</div>
         <h2>Reset the checklist?</h2>
         <p>
-          This will clear the bike setup and every selected status, measurement
-          and note saved on this device.
+          This will clear the work order number, bike setup and every selected
+          status, measurement and note saved on this device.
         </p>
         <div class="dialog-actions">
           <button class="button button-secondary" value="cancel">Keep checklist</button>
@@ -311,6 +322,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <script src="./app.js?v=15" defer></script>
+    <script src="./app.js?v=16" defer></script>
   </body>
 </html>

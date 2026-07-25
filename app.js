@@ -350,6 +350,7 @@ const resetButton = $("#reset-button");
 const resetDialog = $("#reset-dialog");
 const printButton = $("#print-button");
 const themeToggle = $("#theme-toggle");
+const workOrderInput = $("#work-order-number");
 const toast = $("#toast");
 const configurationCount = $("#configuration-count");
 const showAllItems = $("#show-all-items");
@@ -618,6 +619,10 @@ function loadState() {
           ...DEFAULT_CONFIGURATION,
           ...(stored.configuration || {}),
         },
+        workOrderNumber:
+          typeof stored.workOrderNumber === "string"
+            ? stored.workOrderNumber
+            : "",
         showAllItems: stored.showAllItems === true,
       };
     }
@@ -632,6 +637,7 @@ function loadState() {
     multiSelections: {},
     autoStatuses: {},
     configuration: { ...DEFAULT_CONFIGURATION },
+    workOrderNumber: "",
     showAllItems: false,
   };
 }
@@ -1121,6 +1127,7 @@ function resetChecklist() {
     multiSelections: {},
     autoStatuses: {},
     configuration: { ...DEFAULT_CONFIGURATION },
+    workOrderNumber: "",
     showAllItems: false,
   };
 
@@ -1149,6 +1156,7 @@ function resetChecklist() {
   }
 
   incompleteFilter.checked = false;
+  if (workOrderInput) workOrderInput.value = "";
   syncConfigurationControls();
   recomputeRelevance();
   applyIncompleteFilter();
@@ -1339,6 +1347,10 @@ function cacheNodes() {
 }
 
 function syncConfigurationControls() {
+  if (workOrderInput) {
+    workOrderInput.value = checklistState.workOrderNumber || "";
+  }
+
   for (const dropdown of configurationDropdowns) {
     const key = dropdown.dataset.configurationDropdown;
     const value = checklistState.configuration[key] || "";
@@ -1541,6 +1553,12 @@ showAllItems.addEventListener("change", () => {
 });
 
 incompleteFilter.addEventListener("change", applyIncompleteFilter);
+if (workOrderInput) {
+  workOrderInput.addEventListener("input", () => {
+    checklistState.workOrderNumber = workOrderInput.value;
+    scheduleSave();
+  });
+}
 if (themeToggle) themeToggle.addEventListener("click", toggleTheme);
 printButton.addEventListener("click", () => {
   preparePrintView();

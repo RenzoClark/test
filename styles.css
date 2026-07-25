@@ -502,12 +502,46 @@ main {
   line-height: 1.05;
 }
 
-.intro-card > div:first-child > p:last-child {
+.intro-card > div:first-child > p:last-of-type {
   max-width: 680px;
   margin: 0;
   color: var(--muted);
   font-size: 0.88rem;
   line-height: 1.55;
+}
+
+.work-order-field {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 290px);
+  margin-top: 16px;
+  color: var(--navy-800);
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.work-order-field input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 11px;
+  color: var(--ink);
+  border: 1px solid #b9c6cf;
+  border-radius: 7px;
+  outline: none;
+  background: #fff;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: normal;
+}
+
+.work-order-field input:hover {
+  border-color: #8699a6;
+}
+
+.work-order-field input:focus {
+  border-color: var(--teal-600);
+  box-shadow: 0 0 0 3px rgba(10, 143, 138, 0.11);
 }
 
 .configuration-card {
@@ -1213,6 +1247,7 @@ html[data-theme="dark"] .multi-select summary,
 html[data-theme="dark"] .multi-select-menu,
 html[data-theme="dark"] .status-button,
 html[data-theme="dark"] .rail-chip,
+html[data-theme="dark"] .work-order-field input,
 html[data-theme="dark"] dialog .button-secondary {
   color: var(--ink);
   background: #203542;
@@ -1658,6 +1693,15 @@ html[data-theme="dark"] .rail-chip.active {
     font-size: 16px;
   }
 
+  .work-order-field {
+    width: 100%;
+  }
+
+  .work-order-field input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
   main {
     padding-bottom: calc(44px + env(safe-area-inset-bottom));
   }
@@ -1843,6 +1887,33 @@ html[data-theme="dark"] .rail-chip.active {
 
   .intro-card h1 {
     font-size: 20pt;
+  }
+
+  .work-order-field {
+    display: grid;
+    grid-template-columns: auto minmax(45mm, 1fr);
+    align-items: end;
+    gap: 3mm;
+    width: 100%;
+    margin-top: 4mm;
+    color: #102738;
+    font-size: 8pt;
+  }
+
+  .work-order-field input {
+    min-height: 0;
+    padding: 0 0 1mm;
+    color: #102738;
+    border: 0;
+    border-bottom: 1px solid #7e8b94;
+    border-radius: 0;
+    background: transparent;
+    font-size: 9pt;
+    box-shadow: none;
+  }
+
+  .work-order-field input::placeholder {
+    color: transparent;
   }
 
   #checklist-form {
