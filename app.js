@@ -352,8 +352,11 @@ const printButton = $("#print-button");
 const toast = $("#toast");
 const configurationCount = $("#configuration-count");
 const showAllItems = $("#show-all-items");
-const configurationFields = [
-  ...document.querySelectorAll("[data-configuration-key]"),
+const configurationOptions = [
+  ...document.querySelectorAll("[data-configuration-option]"),
+];
+const configurationDropdowns = [
+  ...document.querySelectorAll("[data-configuration-dropdown]"),
 ];
 
 const supportsFieldSizing =
@@ -905,6 +908,7 @@ function closeConditionDropdowns() {
   for (const nodes of rowNodes.values()) {
     if (nodes.conditionDropdown) nodes.conditionDropdown.open = false;
   }
+  for (const dropdown of configurationDropdowns) dropdown.open = false;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1309,8 +1313,21 @@ function cacheNodes() {
 }
 
 function syncConfigurationControls() {
-  for (const field of configurationFields) {
-    field.value = checklistState.configuration[field.dataset.configurationKey] || "";
+  for (const dropdown of configurationDropdowns) {
+    const key = dropdown.dataset.configurationDropdown;
+    const value = checklistState.configuration[key] || "";
+    let selectedLabel = "";
+
+    for (const option of dropdown.querySelectorAll("[data-configuration-option]")) {
+      option.checked = option.value === value;
+      if (option.checked && value) selectedLabel = option.dataset.optionLabel;
+    }
+
+    const summary = dropdown.querySelector("[data-configuration-summary]");
+    if (summary) {
+      summary.textContent =
+        selectedLabel || summary.dataset.placeholder || "Select";
+    }
   }
   showAllItems.checked = checklistState.showAllItems;
 }
@@ -1480,9 +1497,13 @@ if (rail) {
   );
 }
 
-for (const field of configurationFields) {
-  field.addEventListener("change", () => {
-    updateConfiguration(field.dataset.configurationKey, field.value);
+for (const option of configurationOptions) {
+  option.addEventListener("change", () => {
+    if (!option.checked) return;
+    updateConfiguration(option.dataset.configurationOption, option.value);
+    syncConfigurationControls();
+    const dropdown = option.closest("details");
+    if (dropdown) dropdown.open = false;
   });
 }
 

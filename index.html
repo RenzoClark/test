@@ -23,8 +23,8 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./shop-logo.png" sizes="96x96" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
-    <link rel="preload" as="script" href="./app.js?v=12" />
-    <link rel="stylesheet" href="./styles.css?v=12" />
+    <link rel="preload" as="script" href="./app.js?v=13" />
+    <link rel="stylesheet" href="./styles.css?v=13" />
   </head>
   <body>
     <header class="topbar" id="topbar">
@@ -142,75 +142,96 @@
           </div>
 
           <div class="configuration-grid">
-            <label class="configuration-field">
+            <div class="configuration-field">
               <span>E-bike</span>
-              <select data-configuration-key="ebike">
-                <option value="">Select</option>
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
-            </label>
+              <details class="multi-select configuration-select" data-configuration-dropdown="ebike">
+                <summary data-configuration-summary data-placeholder="Select">Select</summary>
+                <div class="multi-select-menu" role="radiogroup" aria-label="E-bike">
+                  <label><input type="radio" name="configuration-ebike" data-configuration-option="ebike" data-option-label="Not selected" value=""><span>Not selected</span></label>
+                  <label><input type="radio" name="configuration-ebike" data-configuration-option="ebike" data-option-label="No" value="no"><span>No</span></label>
+                  <label><input type="radio" name="configuration-ebike" data-configuration-option="ebike" data-option-label="Yes" value="yes"><span>Yes</span></label>
+                </div>
+              </details>
+            </div>
 
-            <label class="configuration-field">
+            <div class="configuration-field">
               <span>Front brake</span>
-              <select data-configuration-key="frontBrake">
-                <option value="">Select type</option>
-                <option value="mechanical-rim">Mechanical rim</option>
-                <option value="mechanical-disc">Mechanical disc</option>
-                <option value="hydraulic-disc">Hydraulic disc</option>
-                <option value="none">None</option>
-              </select>
-            </label>
+              <details class="multi-select configuration-select" data-configuration-dropdown="frontBrake">
+                <summary data-configuration-summary data-placeholder="Select type">Select type</summary>
+                <div class="multi-select-menu" role="radiogroup" aria-label="Front brake type">
+                  <label><input type="radio" name="configuration-front-brake" data-configuration-option="frontBrake" data-option-label="Not selected" value=""><span>Not selected</span></label>
+                  <label><input type="radio" name="configuration-front-brake" data-configuration-option="frontBrake" data-option-label="Mechanical rim" value="mechanical-rim"><span>Mechanical rim</span></label>
+                  <label><input type="radio" name="configuration-front-brake" data-configuration-option="frontBrake" data-option-label="Mechanical disc" value="mechanical-disc"><span>Mechanical disc</span></label>
+                  <label><input type="radio" name="configuration-front-brake" data-configuration-option="frontBrake" data-option-label="Hydraulic disc" value="hydraulic-disc"><span>Hydraulic disc</span></label>
+                  <label><input type="radio" name="configuration-front-brake" data-configuration-option="frontBrake" data-option-label="None" value="none"><span>None</span></label>
+                </div>
+              </details>
+            </div>
 
-            <label class="configuration-field">
+            <div class="configuration-field">
               <span>Rear brake</span>
-              <select data-configuration-key="rearBrake">
-                <option value="">Select type</option>
-                <option value="mechanical-rim">Mechanical rim</option>
-                <option value="mechanical-disc">Mechanical disc</option>
-                <option value="hydraulic-disc">Hydraulic disc</option>
-                <option value="none">None</option>
-              </select>
-            </label>
+              <details class="multi-select configuration-select" data-configuration-dropdown="rearBrake">
+                <summary data-configuration-summary data-placeholder="Select type">Select type</summary>
+                <div class="multi-select-menu" role="radiogroup" aria-label="Rear brake type">
+                  <label><input type="radio" name="configuration-rear-brake" data-configuration-option="rearBrake" data-option-label="Not selected" value=""><span>Not selected</span></label>
+                  <label><input type="radio" name="configuration-rear-brake" data-configuration-option="rearBrake" data-option-label="Mechanical rim" value="mechanical-rim"><span>Mechanical rim</span></label>
+                  <label><input type="radio" name="configuration-rear-brake" data-configuration-option="rearBrake" data-option-label="Mechanical disc" value="mechanical-disc"><span>Mechanical disc</span></label>
+                  <label><input type="radio" name="configuration-rear-brake" data-configuration-option="rearBrake" data-option-label="Hydraulic disc" value="hydraulic-disc"><span>Hydraulic disc</span></label>
+                  <label><input type="radio" name="configuration-rear-brake" data-configuration-option="rearBrake" data-option-label="None" value="none"><span>None</span></label>
+                </div>
+              </details>
+            </div>
 
-            <label class="configuration-field">
+            <div class="configuration-field">
               <span>Suspension</span>
-              <select data-configuration-key="suspension">
-                <option value="">Select type</option>
-                <option value="rigid">Rigid</option>
-                <option value="front">Front suspension</option>
-                <option value="full">Full suspension</option>
-              </select>
-            </label>
+              <details class="multi-select configuration-select" data-configuration-dropdown="suspension">
+                <summary data-configuration-summary data-placeholder="Select type">Select type</summary>
+                <div class="multi-select-menu" role="radiogroup" aria-label="Suspension type">
+                  <label><input type="radio" name="configuration-suspension" data-configuration-option="suspension" data-option-label="Not selected" value=""><span>Not selected</span></label>
+                  <label><input type="radio" name="configuration-suspension" data-configuration-option="suspension" data-option-label="Rigid" value="rigid"><span>Rigid</span></label>
+                  <label><input type="radio" name="configuration-suspension" data-configuration-option="suspension" data-option-label="Front suspension" value="front"><span>Front suspension</span></label>
+                  <label><input type="radio" name="configuration-suspension" data-configuration-option="suspension" data-option-label="Full suspension" value="full"><span>Full suspension</span></label>
+                </div>
+              </details>
+            </div>
 
-            <label class="configuration-field">
+            <div class="configuration-field">
               <span>Gearing</span>
-              <select data-configuration-key="gearing">
-                <option value="">Select type</option>
-                <option value="mechanical-derailleur">Mechanical derailleur</option>
-                <option value="electronic-derailleur">Electronic derailleur</option>
-                <option value="internal">Internal gear hub</option>
-                <option value="single">Single speed</option>
-              </select>
-            </label>
+              <details class="multi-select configuration-select" data-configuration-dropdown="gearing">
+                <summary data-configuration-summary data-placeholder="Select type">Select type</summary>
+                <div class="multi-select-menu" role="radiogroup" aria-label="Gearing type">
+                  <label><input type="radio" name="configuration-gearing" data-configuration-option="gearing" data-option-label="Not selected" value=""><span>Not selected</span></label>
+                  <label><input type="radio" name="configuration-gearing" data-configuration-option="gearing" data-option-label="Mechanical derailleur" value="mechanical-derailleur"><span>Mechanical derailleur</span></label>
+                  <label><input type="radio" name="configuration-gearing" data-configuration-option="gearing" data-option-label="Electronic derailleur" value="electronic-derailleur"><span>Electronic derailleur</span></label>
+                  <label><input type="radio" name="configuration-gearing" data-configuration-option="gearing" data-option-label="Internal gear hub" value="internal"><span>Internal gear hub</span></label>
+                  <label><input type="radio" name="configuration-gearing" data-configuration-option="gearing" data-option-label="Single speed" value="single"><span>Single speed</span></label>
+                </div>
+              </details>
+            </div>
 
-            <label class="configuration-field">
+            <div class="configuration-field">
               <span>Drive</span>
-              <select data-configuration-key="drive">
-                <option value="">Select type</option>
-                <option value="chain">Chain</option>
-                <option value="belt">Belt</option>
-              </select>
-            </label>
+              <details class="multi-select configuration-select" data-configuration-dropdown="drive">
+                <summary data-configuration-summary data-placeholder="Select type">Select type</summary>
+                <div class="multi-select-menu" role="radiogroup" aria-label="Drive type">
+                  <label><input type="radio" name="configuration-drive" data-configuration-option="drive" data-option-label="Not selected" value=""><span>Not selected</span></label>
+                  <label><input type="radio" name="configuration-drive" data-configuration-option="drive" data-option-label="Chain" value="chain"><span>Chain</span></label>
+                  <label><input type="radio" name="configuration-drive" data-configuration-option="drive" data-option-label="Belt" value="belt"><span>Belt</span></label>
+                </div>
+              </details>
+            </div>
 
-            <label class="configuration-field">
+            <div class="configuration-field">
               <span>Dropper post</span>
-              <select data-configuration-key="dropper">
-                <option value="">Select</option>
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
-            </label>
+              <details class="multi-select configuration-select" data-configuration-dropdown="dropper">
+                <summary data-configuration-summary data-placeholder="Select">Select</summary>
+                <div class="multi-select-menu" role="radiogroup" aria-label="Dropper post">
+                  <label><input type="radio" name="configuration-dropper" data-configuration-option="dropper" data-option-label="Not selected" value=""><span>Not selected</span></label>
+                  <label><input type="radio" name="configuration-dropper" data-configuration-option="dropper" data-option-label="No" value="no"><span>No</span></label>
+                  <label><input type="radio" name="configuration-dropper" data-configuration-option="dropper" data-option-label="Yes" value="yes"><span>Yes</span></label>
+                </div>
+              </details>
+            </div>
           </div>
 
           <label class="filter-toggle show-all-toggle">

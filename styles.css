@@ -215,6 +215,7 @@ button {
 .nav-link:focus-visible,
 textarea:focus-visible,
 .configuration-field select:focus-visible,
+.configuration-select summary:focus-visible,
 .filter-toggle input:focus-visible + .toggle-ui {
   outline: 3px solid rgba(10, 143, 138, 0.28);
   outline-offset: 2px;
@@ -601,6 +602,10 @@ main {
 
 .configuration-field select:focus {
   border-color: var(--teal-600);
+}
+
+.configuration-select {
+  max-width: none;
 }
 
 .show-all-toggle {
