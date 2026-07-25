@@ -884,6 +884,29 @@ function refreshTyreConditionRow(id) {
   nodes.el.classList.toggle("is-complete", rowIsComplete(id));
 }
 
+function refreshChainWearRow() {
+  const nodes = rowNodes.get(CHAIN_WEAR_ROW_ID);
+  if (!nodes) return;
+
+  const measurement = checklistState.measurements[CHAIN_WEAR_ROW_ID] || "";
+  for (const option of nodes.chainOptions) {
+    option.checked = option.value === measurement;
+  }
+  if (nodes.chainSummary) {
+    nodes.chainSummary.textContent = measurement || "Select measurement";
+  }
+  nodes.el.classList.toggle(
+    "is-complete",
+    rowIsComplete(CHAIN_WEAR_ROW_ID),
+  );
+}
+
+function closeConditionDropdowns() {
+  for (const nodes of rowNodes.values()) {
+    if (nodes.conditionDropdown) nodes.conditionDropdown.open = false;
+  }
+}
+
 /* ---------------------------------------------------------------------------
    Filters
    ------------------------------------------------------------------------ */
@@ -993,7 +1016,7 @@ function updateMeasurement(id, value) {
     }
   }
 
-  refreshStatusRow(id);
+  refreshChainWearRow();
   syncRowCompletion(id, wasComplete);
   refreshSectionFilter(ROW_META.get(id).section.id);
   scheduleRender();
@@ -1024,6 +1047,7 @@ function updateTyreCondition(id, option, checked) {
   }
 
   refreshTyreConditionRow(id);
+  if (checked && option === "OK") closeConditionDropdowns();
   syncRowCompletion(id, wasComplete);
   refreshSectionFilter(ROW_META.get(id).section.id);
   scheduleRender();
@@ -1085,7 +1109,9 @@ function resetChecklist() {
     if (nodes.select) nodes.select.value = "";
     for (const checkbox of nodes.multiOptions) checkbox.checked = false;
     if (nodes.multiSummary) nodes.multiSummary.textContent = "Select condition";
-    if (nodes.multiSelect) nodes.multiSelect.open = false;
+    for (const option of nodes.chainOptions) option.checked = false;
+    if (nodes.chainSummary) nodes.chainSummary.textContent = "Select measurement";
+    if (nodes.conditionDropdown) nodes.conditionDropdown.open = false;
   }
 
   incompleteFilter.checked = false;
@@ -1172,13 +1198,15 @@ function renderChecklist() {
           ).join("") +
           `</div></details>`
         : isChainWearRow
-          ? `<select class="measurement-select" data-measurement-id="${id}" aria-label="Chain wear measurement">` +
-          `<option value="">Select</option>` +
+          ? `<details class="multi-select" data-chain-select="${id}">` +
+          `<summary data-chain-summary>${measurement || "Select measurement"}</summary>` +
+          `<div class="multi-select-menu" role="radiogroup" aria-label="Chain wear measurement">` +
           CHAIN_WEAR_OPTIONS.map(
             (option) =>
-              `<option value="${option}"${measurement === option ? " selected" : ""}>${option}</option>`,
+              `<label><input type="radio" name="chain-wear-measurement" data-chain-wear-id="${id}" value="${option}"${measurement === option ? " checked" : ""}>` +
+              `<span>${option}</span></label>`,
           ).join("") +
-          `</select>`
+          `</div></details>`
           : options
               .map(
                 (option) =>
@@ -1267,9 +1295,11 @@ function cacheNodes() {
       buttons: el.querySelectorAll(".status-button"),
       note: el.querySelector("textarea"),
       select: el.querySelector(".measurement-select"),
-      multiSelect: el.querySelector(".multi-select"),
+      conditionDropdown: el.querySelector(".multi-select"),
       multiSummary: el.querySelector("[data-multi-summary]"),
       multiOptions: el.querySelectorAll("[data-tyre-condition-id]"),
+      chainSummary: el.querySelector("[data-chain-summary]"),
+      chainOptions: el.querySelectorAll("[data-chain-wear-id]"),
     });
   }
 }
@@ -1380,6 +1410,18 @@ form.addEventListener("change", (event) => {
       tyreOption.value,
       tyreOption.checked,
     );
+    return;
+  }
+
+  const chainOption = event.target.closest("[data-chain-wear-id]");
+  if (chainOption) {
+    updateMeasurement(chainOption.dataset.chainWearId, chainOption.value);
+    if (chainOption.value === "OK") {
+      closeConditionDropdowns();
+    } else {
+      const dropdown = chainOption.closest("details");
+      if (dropdown) dropdown.open = false;
+    }
     return;
   }
 
