@@ -1602,6 +1602,10 @@ dialog .button-secondary {
     break-inside: auto;
   }
 
+  .checklist-section:not(.has-print-entries) {
+    display: none !important;
+  }
+
   .section-heading {
     min-height: 9mm;
     break-after: avoid;
@@ -1618,8 +1622,14 @@ dialog .button-secondary {
   }
 
   .check-row {
+    display: none;
     min-height: 10mm;
     break-inside: avoid;
+  }
+
+  .check-row.is-complete:not(.is-configuration-hidden),
+  .check-row.has-entry:not(.is-configuration-hidden) {
+    display: grid !important;
   }
 
   .row-item {
@@ -1641,6 +1651,10 @@ dialog .button-secondary {
     min-height: 7mm;
     padding: 1mm;
     font-size: 5.6pt;
+  }
+
+  .status-button[aria-pressed="false"] {
+    display: none;
   }
 
   .measurement-select {
@@ -1675,11 +1689,6 @@ dialog .button-secondary {
     padding: 1mm;
     border: 0;
     font-size: 6.5pt;
-  }
-
-  .check-row.is-hidden,
-  .check-row.is-incomplete-hidden {
-    display: grid;
   }
 
   .check-row.is-configuration-hidden,

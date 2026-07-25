@@ -1055,6 +1055,9 @@ function updateTyreCondition(id, option, checked) {
 }
 
 function updateNote(id, value) {
+  const nodes = rowNodes.get(id);
+  if (nodes) nodes.el.classList.toggle("has-entry", Boolean(value.trim()));
+
   if (value.trim()) {
     checklistState.notes[id] = value;
   } else {
@@ -1102,6 +1105,7 @@ function resetChecklist() {
       button.setAttribute("aria-pressed", "false");
     }
     nodes.el.classList.remove("is-complete");
+    nodes.el.classList.remove("has-entry");
     if (nodes.note) {
       nodes.note.value = "";
       autoGrow(nodes.note);
@@ -1216,7 +1220,7 @@ function renderChecklist() {
               .join("");
 
       return (
-        `<div class="check-row${rowIsComplete(id) ? " is-complete" : ""}" data-row="${id}">` +
+        `<div class="check-row${rowIsComplete(id) ? " is-complete" : ""}${note.trim() ? " has-entry" : ""}" data-row="${id}">` +
         `<div class="row-item"><span class="row-index" aria-hidden="true">${index + 1}</span>` +
         `<span>${escapeText(item)}</span></div>` +
         `<div class="row-status"${isChainWearRow || isTyreConditionRow ? "" : ` role="group" aria-label="Status for ${label}"`}>` +
@@ -1330,6 +1334,18 @@ function showToast(message) {
   toast.classList.add("show");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+function preparePrintView() {
+  for (const nodes of sectionNodes.values()) {
+    const hasEntries = [...nodes.el.querySelectorAll(".check-row")].some(
+      (row) =>
+        !row.classList.contains("is-configuration-hidden") &&
+        (row.classList.contains("is-complete") ||
+          row.classList.contains("has-entry")),
+    );
+    nodes.el.classList.toggle("has-print-entries", hasEntries);
+  }
 }
 
 /** Sticky header height drives anchor offsets, so measure it rather than guess. */
@@ -1475,7 +1491,11 @@ showAllItems.addEventListener("change", () => {
 });
 
 incompleteFilter.addEventListener("change", applyIncompleteFilter);
-printButton.addEventListener("click", () => window.print());
+printButton.addEventListener("click", () => {
+  preparePrintView();
+  window.print();
+});
+window.addEventListener("beforeprint", preparePrintView);
 
 resetButton.addEventListener("click", () => {
   if (typeof resetDialog.showModal === "function") {
