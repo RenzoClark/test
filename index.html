@@ -12,6 +12,20 @@
       content="A professional, interactive bicycle workshop pre-authorisation inspection checklist."
     />
     <meta name="theme-color" content="#183246" />
+    <script>
+      (() => {
+        try {
+          const savedTheme = localStorage.getItem("workshop-checklist-theme");
+          const dark =
+            savedTheme === "dark" ||
+            (!savedTheme &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.dataset.theme = dark ? "dark" : "light";
+        } catch {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
@@ -23,8 +37,8 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./shop-logo.png" sizes="96x96" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
-    <link rel="preload" as="script" href="./app.js?v=13" />
-    <link rel="stylesheet" href="./styles.css?v=13" />
+    <link rel="preload" as="script" href="./app.js?v=15" />
+    <link rel="stylesheet" href="./styles.css?v=15" />
   </head>
   <body>
     <header class="topbar" id="topbar">
@@ -57,6 +71,18 @@
       </div>
 
       <div class="header-actions">
+        <button
+          class="button button-secondary theme-toggle"
+          id="theme-toggle"
+          type="button"
+          aria-pressed="false"
+          title="Switch to dark mode"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M20.3 15.7A8.5 8.5 0 0 1 8.3 3.7 8.5 8.5 0 1 0 20.3 15.7z" />
+          </svg>
+          <span class="theme-label">Dark</span>
+        </button>
         <button class="button button-secondary" id="print-button" type="button">
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z" />
@@ -285,6 +311,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <script src="./app.js?v=7" defer></script>
+    <script src="./app.js?v=15" defer></script>
   </body>
 </html>

@@ -349,6 +349,7 @@ const incompleteFilter = $("#incomplete-filter");
 const resetButton = $("#reset-button");
 const resetDialog = $("#reset-dialog");
 const printButton = $("#print-button");
+const themeToggle = $("#theme-toggle");
 const toast = $("#toast");
 const configurationCount = $("#configuration-count");
 const showAllItems = $("#show-all-items");
@@ -363,6 +364,31 @@ const supportsFieldSizing =
   typeof CSS !== "undefined" &&
   CSS.supports &&
   CSS.supports("field-sizing", "content");
+
+const THEME_STORAGE_KEY = "workshop-checklist-theme";
+
+function syncThemeToggle() {
+  if (!themeToggle) return;
+  const dark = document.documentElement.dataset.theme === "dark";
+  themeToggle.setAttribute("aria-pressed", String(dark));
+  themeToggle.title = dark ? "Switch to light mode" : "Switch to dark mode";
+  const label = themeToggle.querySelector(".theme-label");
+  if (label) label.textContent = dark ? "Light" : "Dark";
+}
+
+function toggleTheme() {
+  const dark = document.documentElement.dataset.theme === "dark";
+  const nextTheme = dark ? "light" : "dark";
+  document.documentElement.dataset.theme = nextTheme;
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  } catch {
+    // The selected theme still applies for this visit.
+  }
+  syncThemeToggle();
+}
+
+syncThemeToggle();
 
 /* ---------------------------------------------------------------------------
    Static indexes. Built once, so no hot path ever searches an array or the DOM.
@@ -1502,6 +1528,9 @@ for (const option of configurationOptions) {
     if (!option.checked) return;
     updateConfiguration(option.dataset.configurationOption, option.value);
     syncConfigurationControls();
+  });
+
+  option.addEventListener("click", () => {
     const dropdown = option.closest("details");
     if (dropdown) dropdown.open = false;
   });
@@ -1512,6 +1541,7 @@ showAllItems.addEventListener("change", () => {
 });
 
 incompleteFilter.addEventListener("change", applyIncompleteFilter);
+if (themeToggle) themeToggle.addEventListener("click", toggleTheme);
 printButton.addEventListener("click", () => {
   preparePrintView();
   window.print();
