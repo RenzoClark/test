@@ -351,6 +351,8 @@ const resetDialog = $("#reset-dialog");
 const printButton = $("#print-button");
 const themeToggle = $("#theme-toggle");
 const workOrderInput = $("#work-order-number");
+const nextIncompleteButton = $("#next-incomplete");
+const nextIncompleteCount = $("#next-incomplete-count");
 const toast = $("#toast");
 const configurationCount = $("#configuration-count");
 const showAllItems = $("#show-all-items");
@@ -874,6 +876,17 @@ function renderProgress() {
   setText(ringPercent, `${percent}%`);
   setText(sidebarProgressLabel, `${totalComplete} of ${totalRelevant} items`);
   setText(configurationCount, `${totalRelevant} of ${FULL_CHECKLIST_TOTAL}`);
+  const remaining = Math.max(0, totalRelevant - totalComplete);
+  setText(nextIncompleteCount, String(remaining));
+  if (nextIncompleteButton) {
+    nextIncompleteButton.hidden = remaining === 0;
+    nextIncompleteButton.setAttribute(
+      "aria-label",
+      remaining
+        ? `Go to next unchecked inspection point. ${remaining} remaining.`
+        : "All inspection points are checked.",
+    );
+  }
   const root = document.documentElement.style;
   root.setProperty("--progress-percent", `${percent}%`);
   progressRing.style.setProperty("--progress", `${percent * 3.6}deg`);
@@ -1147,6 +1160,7 @@ function resetChecklist() {
       nodes.note.value = "";
       autoGrow(nodes.note);
     }
+    nodes.el.classList.remove("is-note-open");
     if (nodes.select) nodes.select.value = "";
     for (const checkbox of nodes.multiOptions) checkbox.checked = false;
     if (nodes.multiSummary) nodes.multiSummary.textContent = "Select condition";
@@ -1264,10 +1278,12 @@ function renderChecklist() {
         `<div class="row-status"${isChainWearRow || isTyreConditionRow ? "" : ` role="group" aria-label="Status for ${label}"`}>` +
         statusControl +
         `</div>` +
-        `<label class="row-notes"><span class="visually-hidden">Finding or notes for ${escapeText(item)}</span>` +
-        `<textarea data-note-id="${id}" aria-label="Finding or notes for ${label}" rows="1" ` +
+        `<div class="row-notes"><label class="visually-hidden" for="note-${id}">Finding or notes for ${escapeText(item)}</label>` +
+        `<button class="note-toggle" type="button" data-note-toggle="${id}" aria-label="Add finding or required action for ${label}">Add finding / action</button>` +
+        `<textarea id="note-${id}" data-note-id="${id}" aria-label="Finding or notes for ${label}" rows="1" ` +
+        `placeholder="Finding or required action" ` +
         `autocapitalize="sentences" autocorrect="on" spellcheck="true" enterkeyhint="done">` +
-        `${escapeText(note)}</textarea></label>` +
+        `${escapeText(note)}</textarea></div>` +
         `</div>`
       );
     });
@@ -1336,6 +1352,7 @@ function cacheNodes() {
       el,
       buttons: el.querySelectorAll(".status-button"),
       note: el.querySelector("textarea"),
+      noteToggle: el.querySelector("[data-note-toggle]"),
       select: el.querySelector(".measurement-select"),
       conditionDropdown: el.querySelector(".multi-select"),
       multiSummary: el.querySelector("[data-multi-summary]"),
@@ -1456,11 +1473,60 @@ function jumpToSection(sectionId) {
   });
 }
 
+function jumpToNextIncomplete() {
+  const candidates = [];
+
+  for (const [id, nodes] of rowNodes) {
+    if (relevantRows.has(id) && !rowIsComplete(id)) candidates.push(nodes.el);
+  }
+
+  if (!candidates.length) {
+    showToast("All relevant checks are complete");
+    return;
+  }
+
+  const current = candidates.find(
+    (row) => row.getBoundingClientRect().top > 110,
+  );
+  const target = current || candidates[0];
+  const previous = form.querySelector(".check-row.is-guided");
+  if (previous && previous !== target) previous.classList.remove("is-guided");
+
+  target.classList.remove("is-guided");
+  void target.offsetWidth;
+  target.classList.add("is-guided");
+  target.scrollIntoView({
+    behavior: prefersReducedMotion() ? "auto" : "smooth",
+    block: "center",
+  });
+
+  const control = target.querySelector(
+    ".status-button, .multi-select summary, .measurement-select",
+  );
+  if (control) {
+    window.setTimeout(
+      () => control.focus({ preventScroll: true }),
+      prefersReducedMotion() ? 0 : 260,
+    );
+  }
+  window.setTimeout(() => target.classList.remove("is-guided"), 900);
+}
+
 /* ---------------------------------------------------------------------------
    Events. All delegated, so listener count stays flat as the list grows.
    ------------------------------------------------------------------------ */
 
 form.addEventListener("click", (event) => {
+  const noteToggle = event.target.closest("[data-note-toggle]");
+  if (noteToggle) {
+    const nodes = rowNodes.get(noteToggle.dataset.noteToggle);
+    if (!nodes?.note) return;
+    nodes.el.classList.add("is-note-open");
+    nodes.note.focus();
+    autoGrow(nodes.note);
+    return;
+  }
+
   const button = event.target.closest(".status-button");
   if (!button) return;
   updateStatus(button.dataset.rowId, button.dataset.status);
@@ -1504,7 +1570,12 @@ form.addEventListener("change", (event) => {
 form.addEventListener(
   "focusout",
   (event) => {
-    if (event.target.closest("[data-note-id]")) flushSave();
+    const field = event.target.closest("[data-note-id]");
+    if (!field) return;
+    if (!field.value.trim()) {
+      rowNodes.get(field.dataset.noteId)?.el.classList.remove("is-note-open");
+    }
+    flushSave();
   },
   true,
 );
@@ -1553,6 +1624,9 @@ showAllItems.addEventListener("change", () => {
 });
 
 incompleteFilter.addEventListener("change", applyIncompleteFilter);
+if (nextIncompleteButton) {
+  nextIncompleteButton.addEventListener("click", jumpToNextIncomplete);
+}
 if (workOrderInput) {
   workOrderInput.addEventListener("input", () => {
     checklistState.workOrderNumber = workOrderInput.value;

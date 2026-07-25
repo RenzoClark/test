@@ -37,8 +37,8 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./shop-logo.png" sizes="96x96" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
-    <link rel="preload" as="script" href="./app.js?v=18" />
-    <link rel="stylesheet" href="./styles.css?v=18" />
+    <link rel="preload" as="script" href="./app.js?v=19" />
+    <link rel="stylesheet" href="./styles.css?v=19" />
   </head>
   <body>
     <header class="topbar" id="topbar">
@@ -320,8 +320,14 @@
       </form>
     </dialog>
 
+    <button class="next-incomplete" id="next-incomplete" type="button">
+      <span>Next unchecked</span>
+      <strong id="next-incomplete-count">0</strong>
+      <span aria-hidden="true">↓</span>
+    </button>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <script src="./app.js?v=18" defer></script>
+    <script src="./app.js?v=19" defer></script>
   </body>
 </html>
