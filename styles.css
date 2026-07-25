@@ -39,6 +39,8 @@ body {
   min-width: 320px;
   overflow-x: hidden;
   touch-action: pan-x pan-y;
+  cursor: default;
+  user-select: none;
   color: var(--ink);
   background: var(--canvas);
   font-family:
@@ -48,6 +50,7 @@ body {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   overscroll-behavior-y: contain;
+  -webkit-user-select: none;
 }
 
 button,
@@ -55,6 +58,13 @@ textarea,
 input,
 select {
   font: inherit;
+}
+
+textarea,
+input[type="text"] {
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 button {
