@@ -99,18 +99,8 @@ const CHECKLIST_SECTIONS = [
       "Rear rim",
       "Front rim braking surface",
       "Rear rim braking surface",
-      "Front tyre tread",
-      "Rear tyre tread",
-      "Front tyre casing",
-      "Rear tyre casing",
-      "Front tyre pressure",
-      "Rear tyre pressure",
-      "Front tyre bead",
-      "Rear tyre bead",
-      "Front valve",
-      "Rear valve",
-      "Front rim tape or tubeless system",
-      "Rear rim tape or tubeless system",
+      "Front tyre condition",
+      "Rear tyre condition",
     ],
   },
   {
@@ -421,6 +411,25 @@ const LEFT_SHIFTER_ROW_ID = checklistRowId(
   "Left shifter",
 );
 const CHAIN_WEAR_OPTIONS = ["OK", "0.5", "0.75"];
+const TYRE_CONDITION_OPTIONS = [
+  "OK",
+  "Worn",
+  "Degraded",
+  "Damaged",
+  "Tubeless Related Issue",
+];
+const FRONT_TYRE_CONDITION_ROW_ID = checklistRowId(
+  "wheels-tyres",
+  "Front tyre condition",
+);
+const REAR_TYRE_CONDITION_ROW_ID = checklistRowId(
+  "wheels-tyres",
+  "Rear tyre condition",
+);
+const TYRE_CONDITION_ROWS = new Set([
+  FRONT_TYRE_CONDITION_ROW_ID,
+  REAR_TYRE_CONDITION_ROW_ID,
+]);
 const FULL_CHECKLIST_TOTAL = CHECKLIST_SECTIONS.reduce(
   (sum, section) => sum + section.rows.length,
   0,
@@ -554,6 +563,8 @@ let totalComplete = 0;
 
 let checklistState = loadState();
 delete checklistState.statuses[CHAIN_WEAR_ROW_ID];
+delete checklistState.statuses[FRONT_TYRE_CONDITION_ROW_ID];
+delete checklistState.statuses[REAR_TYRE_CONDITION_ROW_ID];
 
 let saveTimer = 0;
 let toastTimer = 0;
@@ -572,6 +583,7 @@ function loadState() {
         statuses: stored.statuses || {},
         notes: stored.notes || {},
         measurements: stored.measurements || {},
+        multiSelections: stored.multiSelections || {},
         autoStatuses: stored.autoStatuses || {},
         configuration: {
           ...DEFAULT_CONFIGURATION,
@@ -588,6 +600,7 @@ function loadState() {
     statuses: {},
     notes: {},
     measurements: {},
+    multiSelections: {},
     autoStatuses: {},
     configuration: { ...DEFAULT_CONFIGURATION },
     showAllItems: false,
@@ -622,6 +635,9 @@ function flushSave() {
    ------------------------------------------------------------------------ */
 
 function rowIsComplete(row) {
+  if (TYRE_CONDITION_ROWS.has(row)) {
+    return Boolean(checklistState.multiSelections[row]?.length);
+  }
   if (row === CHAIN_WEAR_ROW_ID) {
     return Boolean(checklistState.measurements[row]);
   }
@@ -787,7 +803,7 @@ function recomputeCompletion() {
   }
 }
 
-/** Adjusts the running tallies for one row instead of rescanning 239 of them. */
+/** Adjusts the running tallies for one row instead of rescanning the checklist. */
 function syncRowCompletion(id, wasComplete) {
   const isComplete = rowIsComplete(id);
   if (isComplete === wasComplete || !relevantRows.has(id)) return;
@@ -847,6 +863,23 @@ function refreshStatusRow(id) {
   const current = checklistState.statuses[id] || "";
   for (const button of nodes.buttons) {
     button.setAttribute("aria-pressed", String(current === button.dataset.status));
+  }
+  nodes.el.classList.toggle("is-complete", rowIsComplete(id));
+}
+
+function refreshTyreConditionRow(id) {
+  const nodes = rowNodes.get(id);
+  if (!nodes) return;
+
+  const selected = checklistState.multiSelections[id] || [];
+  const selectedSet = new Set(selected);
+  for (const checkbox of nodes.multiOptions) {
+    checkbox.checked = selectedSet.has(checkbox.value);
+  }
+  if (nodes.multiSummary) {
+    nodes.multiSummary.textContent = selected.length
+      ? selected.join(", ")
+      : "Select condition";
   }
   nodes.el.classList.toggle("is-complete", rowIsComplete(id));
 }
@@ -967,6 +1000,36 @@ function updateMeasurement(id, value) {
   scheduleSave();
 }
 
+function updateTyreCondition(id, option, checked) {
+  if (!TYRE_CONDITION_ROWS.has(id) || !TYRE_CONDITION_OPTIONS.includes(option)) {
+    return;
+  }
+
+  const wasComplete = rowIsComplete(id);
+  let selected = checklistState.multiSelections[id] || [];
+
+  if (checked) {
+    selected =
+      option === "OK"
+        ? ["OK"]
+        : [...selected.filter((item) => item !== "OK" && item !== option), option];
+  } else {
+    selected = selected.filter((item) => item !== option);
+  }
+
+  if (selected.length) {
+    checklistState.multiSelections[id] = selected;
+  } else {
+    delete checklistState.multiSelections[id];
+  }
+
+  refreshTyreConditionRow(id);
+  syncRowCompletion(id, wasComplete);
+  refreshSectionFilter(ROW_META.get(id).section.id);
+  scheduleRender();
+  scheduleSave();
+}
+
 function updateNote(id, value) {
   if (value.trim()) {
     checklistState.notes[id] = value;
@@ -998,6 +1061,7 @@ function resetChecklist() {
     statuses: {},
     notes: {},
     measurements: {},
+    multiSelections: {},
     autoStatuses: {},
     configuration: { ...DEFAULT_CONFIGURATION },
     showAllItems: false,
@@ -1019,6 +1083,9 @@ function resetChecklist() {
       autoGrow(nodes.note);
     }
     if (nodes.select) nodes.select.value = "";
+    for (const checkbox of nodes.multiOptions) checkbox.checked = false;
+    if (nodes.multiSummary) nodes.multiSummary.textContent = "Select condition";
+    if (nodes.multiSelect) nodes.multiSelect.open = false;
   }
 
   incompleteFilter.checked = false;
@@ -1091,28 +1158,40 @@ function renderChecklist() {
       const measurement = checklistState.measurements[id] || "";
       const note = checklistState.notes[id] || "";
       const isChainWearRow = id === CHAIN_WEAR_ROW_ID;
+      const isTyreConditionRow = TYRE_CONDITION_ROWS.has(id);
+      const tyreSelections = checklistState.multiSelections[id] || [];
 
-      const statusControl = isChainWearRow
-        ? `<select class="measurement-select" data-measurement-id="${id}" aria-label="Chain wear measurement">` +
+      const statusControl = isTyreConditionRow
+        ? `<details class="multi-select" data-multi-select="${id}">` +
+          `<summary data-multi-summary>${tyreSelections.length ? escapeText(tyreSelections.join(", ")) : "Select condition"}</summary>` +
+          `<div class="multi-select-menu" role="group" aria-label="Tyre condition options for ${label}">` +
+          TYRE_CONDITION_OPTIONS.map(
+            (option) =>
+              `<label><input type="checkbox" data-tyre-condition-id="${id}" value="${escapeAttribute(option)}"${tyreSelections.includes(option) ? " checked" : ""}>` +
+              `<span>${escapeText(option)}</span></label>`,
+          ).join("") +
+          `</div></details>`
+        : isChainWearRow
+          ? `<select class="measurement-select" data-measurement-id="${id}" aria-label="Chain wear measurement">` +
           `<option value="">Select</option>` +
           CHAIN_WEAR_OPTIONS.map(
             (option) =>
               `<option value="${option}"${measurement === option ? " selected" : ""}>${option}</option>`,
           ).join("") +
           `</select>`
-        : options
-            .map(
-              (option) =>
-                `<button class="status-button" type="button" data-row-id="${id}" data-status="${option}" ` +
-                `aria-pressed="${selected === option}" aria-label="${option} for ${label}">${option}</button>`,
-            )
-            .join("");
+          : options
+              .map(
+                (option) =>
+                  `<button class="status-button" type="button" data-row-id="${id}" data-status="${option}" ` +
+                  `aria-pressed="${selected === option}" aria-label="${option} for ${label}">${option}</button>`,
+              )
+              .join("");
 
       return (
         `<div class="check-row${rowIsComplete(id) ? " is-complete" : ""}" data-row="${id}">` +
         `<div class="row-item"><span class="row-index" aria-hidden="true">${index + 1}</span>` +
         `<span>${escapeText(item)}</span></div>` +
-        `<div class="row-status"${isChainWearRow ? "" : ` role="group" aria-label="Status for ${label}"`}>` +
+        `<div class="row-status"${isChainWearRow || isTyreConditionRow ? "" : ` role="group" aria-label="Status for ${label}"`}>` +
         statusControl +
         `</div>` +
         `<label class="row-notes"><span class="visually-hidden">Finding or notes for ${escapeText(item)}</span>` +
@@ -1188,6 +1267,9 @@ function cacheNodes() {
       buttons: el.querySelectorAll(".status-button"),
       note: el.querySelector("textarea"),
       select: el.querySelector(".measurement-select"),
+      multiSelect: el.querySelector(".multi-select"),
+      multiSummary: el.querySelector("[data-multi-summary]"),
+      multiOptions: el.querySelectorAll("[data-tyre-condition-id]"),
     });
   }
 }
@@ -1291,6 +1373,16 @@ form.addEventListener("input", (event) => {
 });
 
 form.addEventListener("change", (event) => {
+  const tyreOption = event.target.closest("[data-tyre-condition-id]");
+  if (tyreOption) {
+    updateTyreCondition(
+      tyreOption.dataset.tyreConditionId,
+      tyreOption.value,
+      tyreOption.checked,
+    );
+    return;
+  }
+
   const field = event.target.closest("[data-measurement-id]");
   if (!field) return;
   updateMeasurement(field.dataset.measurementId, field.value);

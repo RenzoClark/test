@@ -852,6 +852,88 @@ main {
   box-shadow: 0 0 0 3px rgba(10, 143, 138, 0.11);
 }
 
+.multi-select {
+  width: 100%;
+  max-width: 205px;
+  color: var(--navy-900);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.multi-select summary {
+  position: relative;
+  min-height: 34px;
+  overflow: hidden;
+  padding: 8px 30px 7px 10px;
+  border: 1px solid #b9c6cf;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  list-style: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multi-select summary::-webkit-details-marker {
+  display: none;
+}
+
+.multi-select summary::after {
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid #667684;
+  border-bottom: 2px solid #667684;
+  content: "";
+  transform: translateY(-65%) rotate(45deg);
+  transition: transform 120ms ease;
+}
+
+.multi-select[open] summary {
+  border-color: var(--teal-600);
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0 0 0 3px rgba(10, 143, 138, 0.11);
+}
+
+.multi-select[open] summary::after {
+  transform: translateY(-25%) rotate(225deg);
+}
+
+.multi-select-menu {
+  display: grid;
+  border: 1px solid #b9c6cf;
+  border-top: 0;
+  border-radius: 0 0 6px 6px;
+  background: #fff;
+}
+
+.multi-select-menu label {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-top: 1px solid #e1e7eb;
+  cursor: pointer;
+}
+
+.multi-select-menu label:first-child {
+  border-top: 0;
+}
+
+.multi-select-menu label:hover {
+  background: var(--surface-alt);
+}
+
+.multi-select-menu input {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  accent-color: var(--teal-600);
+}
+
 .status-button {
   position: relative;
   display: inline-flex;
@@ -1077,7 +1159,7 @@ dialog .button-secondary {
 
 /* ---------------------------------------------------------------------------
    Mobile section rail. Desktop keeps the sidebar; small screens get a sticky,
-   thumb-scrollable strip so a 239-row list is still navigable.
+   thumb-scrollable strip so the full checklist is still navigable.
    ------------------------------------------------------------------------ */
 
 .section-rail-wrap {
@@ -1330,6 +1412,16 @@ dialog .button-secondary {
     font-size: 16px;
   }
 
+  .multi-select {
+    max-width: 100%;
+    font-size: 16px;
+  }
+
+  .multi-select summary,
+  .multi-select-menu label {
+    min-height: 44px;
+  }
+
   .row-notes {
     padding: 0 0 0 32px;
   }
@@ -1556,6 +1648,21 @@ dialog .button-secondary {
     min-height: 7mm;
     padding: 1mm;
     font-size: 6pt;
+  }
+
+  .multi-select {
+    max-width: none;
+    font-size: 6pt;
+  }
+
+  .multi-select summary {
+    min-height: 7mm;
+    padding: 1mm;
+  }
+
+  .multi-select summary::after,
+  .multi-select-menu {
+    display: none;
   }
 
   .row-notes {
